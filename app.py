@@ -1,27 +1,41 @@
-from app import db, app  # Import both db and app
+from flask import Flask, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
-# Drop and create all tables
-with app.app_context():
-    db.engine.execute('''
-        DROP TABLE IF EXISTS users
-    ''')
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-    db.engine.execute('''
-        CREATE TABLE users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name VARCHAR(50) NOT NULL,
-            balance INTEGER NOT NULL,
-            password VARCHAR(50) NOT NULL,
-            email VARCHAR(50) UNIQUE NOT NULL,
-            address VARCHAR(100),
-            profilepic BLOB,
-            is_artist BOOLEAN,
-            is_premium BOOLEAN
-        )
-    ''')
+class User(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    balance = db.Column(db.Integer, nullable=False)
+    password = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(50), unique=True, nullable=False)
+    address = db.Column(db.String(100))
+    profilepic = db.Column(db.LargeBinary)
+    is_artist = db.Column(db.Boolean)
+    is_premium = db.Column(db.Boolean)
 
-    db.engine.execute('''
-        INSERT INTO users (name, balance, password, email, address, is_artist, is_premium) VALUES
-        ('John Doe', 100, 'password123', 'john@example.com', '123 Main St', 0, 1),
-        ('Jane Smith', 200, 'password456', 'jane@example.com', '456 Main St', 1, 0)
-    ''')
+@app.route('/')
+def home():
+    return "Welcome to Vibes!"
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = db.engine.execute('SELECT * FROM users').fetchall()
+    users_list = []
+    for user in users:
+        users_list.append({
+            'user_id': user['user_id'],
+            'name': user['name'],
+            'balance': user['balance'],
+            'email': user['email'],
+            'address': user['address'],
+            'is_artist': user['is_artist'],
+            'is_premium': user['is_premium']
+        })
+    return jsonify(users_list)
+
+if __name__ == '__main__':
+    app.run(debug=True)
