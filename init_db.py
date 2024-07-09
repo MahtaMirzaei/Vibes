@@ -16,7 +16,7 @@ class User(db.Model):
     profilepic = db.Column(db.LargeBinary)
     is_artist = db.Column(db.Boolean)
     is_premium = db.Column(db.Boolean)
-
+    
 @app.route('/')
 def home():
     return "Welcome to Vibes!"
