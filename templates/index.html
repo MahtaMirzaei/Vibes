@@ -1,17 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-</head>
-<body>
-    <h1>Welcome to the Flask SQLite App!</h1>
-    <h2>Users:</h2>
-    <ul>
-        {% for user in users %}
-            <li>{{ user.name }} - {{ user.email }}</li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+<!DOCTYPE html> 
+<html> 
+	<head> 
+
+		<!-- Meta Tags -->
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+		<!-- Link Tags -->
+		<link rel="apple-touch-icon" sizes="180x180" href="../Assets/Icon/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="../Assets/Icon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="../Assets/Icon/favicon-16x16.png">
+		<link rel="manifest" href="../Assets/Icon/site.webmanifest">
+		<link rel="stylesheet" href="../Assets/css/style.css">
+
+		<!-- Font Link Tags -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+		<!-- Icon Google Links Tags -->
+		<link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+		<title> Home page </title> 
+
+	</head> 
+
+	
+	<body> 
+		<div class="div-header"> 
+			<img src="../Assets/Icon/android-chrome-512x512.png" width="100px">
+			<h1>Vibes</h1>
+
+			<div class="div-title">
+				<button class="btn" type="button" onclick="window.location.href='/join';">Sign Up</button><br/> 
+			</div>
+
+			<div class="div-title">
+				<button class="btn" type="button" onclick="window.location.href='/participant';">Check participant list</button> 
+			</div>
+
+			<hr>
+
+		</div>
+		<!-- <h1>Build Web App Using Flask and SQLite</h1> 
+        <h2>This is just a dummy test</h2>
+		<button class="btn" type="button" onclick="window.location.href='/join';">Fill form to get updates</button><br/> 
+		<button class="btn" type="button" onclick="window.location.href='/participant';">Check participant list</button>  -->
+	</body> 
+</html> 

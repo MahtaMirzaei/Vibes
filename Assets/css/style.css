@@ -1,0 +1,138 @@
+:root{
+    --border-in: #F80;
+    --border-out: hsl(0, 0%, 22%);
+    --border-header: #383838;
+    
+    --background-main-card: #1E1E1F;
+    --background-body: #000;
+
+    --background-sub-div-card: #202022;
+    --background-sub-div-card-2: rgba(44, 43, 43, 0.923);
+    
+    --background-header-title: hsl(240, 1%, 17%);
+    --background-header-title-1: hsl(240, 1%, 20%);
+
+    --box-shadow-1: 0 0 15px #111;
+    --box-shadow-2: 0 0 10px #222;
+    --box-shadow-3: 0 0 10px  rgba(0, 0, 0, 0.722);
+
+    font-family: 'Poppins', sans-serif;
+    --font-color-1: #fff;
+    --font-color-2: #e2e2e2;
+    --font-color-3: #d6d6d6bf;
+
+    --font-size-0: 28px;
+    --font-size-1: 26px;
+    --font-size-2: 18px;
+    --font-size-3: 16px;
+    --font-size-4: 12px;
+}
+
+body {
+    background-color: var(--background-body);
+    box-sizing: border-box;
+    align-items: flex-start;
+    margin: 0;
+    display: flex;
+}
+
+hr {
+    width: 5rem;
+    background-color: var(--border-in);
+    border: none;
+    height: 5px;
+    border-radius: 1rem;
+    margin-left: 30px;
+}
+
+
+/* Header Vibes Style */
+
+.div-header {
+    position: sticky;
+    bottom: 2rem;
+    top: 2rem;
+    
+    display: inline-block;
+    text-align: center;
+    
+    min-width: 16rem;
+    
+    background-color: var(--background-main-card);
+    
+    border: 1px solid var(--border-out);
+    border-radius: 1.5rem;
+    box-shadow: var(--box-shadow-2);
+
+    padding: 2rem;
+    margin: 2rem 1rem 2rem 2rem;
+}
+
+.div-header hr {
+    margin: 30px auto 30px auto;
+    width: 80%;
+}
+
+.div-header h1 {
+    font-size: var(--font-size-0);
+    color: var(--font-color-1);
+}
+
+.div-title {
+    background-color: var(--background-header-title);
+    box-shadow: var(--box-shadow-1);
+    display: inline-block;
+
+    transition: 0.2s;
+
+    border-radius: 1rem;    
+    /* width: 120px; */
+}
+
+.div-title:hover {
+    background-color: var(--background-header-title-1);
+    box-shadow: var(--box-shadow-3);
+}
+
+/* Media */
+
+@media (max-width: 900px) {
+    .div-header {
+        position: relative;
+        bottom: 0;
+        top: 0;
+        display: block;
+        margin: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .div-body {
+        margin: 1.5rem;
+        padding: 1.5rem;
+        display: block;
+    }
+
+    .title-body {
+        padding: 10px;
+    }
+
+    body {
+        display: block;
+    }
+
+    hr {
+        margin-left: 10px;
+    }
+
+    .p-about-me{
+        padding: 10px;
+    }
+}
+
+@media (max-width:1100px) {
+
+    .subdiv-body{
+        flex-basis: 100%;
+    }
+    
+}

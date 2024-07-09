@@ -1,41 +1,52 @@
-from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request 
+import sqlite3 
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+app = Flask(__name__) 
 
-class User(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    balance = db.Column(db.Integer, nullable=False)
-    password = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(50), unique=True, nullable=False)
-    address = db.Column(db.String(100))
-    profilepic = db.Column(db.LargeBinary)
-    is_artist = db.Column(db.Boolean)
-    is_premium = db.Column(db.Boolean)
 
-@app.route('/')
-def home():
-    return "Welcome to Vibes!"
+@app.route('/') 
+# @app.route('/home') 
+def index(): 
+	return render_template('index.html') 
 
-@app.route('/users', methods=['GET'])
-def get_users():
-    users = db.engine.execute('SELECT * FROM users').fetchall()
-    users_list = []
-    for user in users:
-        users_list.append({
-            'user_id': user['user_id'],
-            'name': user['name'],
-            'balance': user['balance'],
-            'email': user['email'],
-            'address': user['address'],
-            'is_artist': user['is_artist'],
-            'is_premium': user['is_premium']
-        })
-    return jsonify(users_list)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+connect = sqlite3.connect('database.db') 
+connect.execute(
+    'CREATE TABLE IF NOT EXISTS PARTICIPANTS (name TEXT, email TEXT, city TEXT, country TEXT, phone TEXT)'
+)
+
+
+
+@app.route('/join', methods=['GET', 'POST']) 
+def join(): 
+	if request.method == 'POST': 
+		name = request.form['name'] 
+		email = request.form['email'] 
+		city = request.form['city'] 
+		country = request.form['country'] 
+		phone = request.form['phone'] 
+
+		with sqlite3.connect("database.db") as users: 
+			cursor = users.cursor() 
+			cursor.execute("INSERT INTO PARTICIPANTS (name, email, city, country, phone) VALUES (?, ?, ?, ?, ?)", (name, email, city, country, phone))
+
+			users.commit() 
+		return render_template("index.html") 
+	else: 
+		return render_template('join.html') 
+
+
+@app.route('/participant') 
+def participants(): 
+	connect = sqlite3.connect('database.db') 
+	cursor = connect.cursor() 
+	cursor.execute('SELECT * FROM PARTICIPANTS') 
+
+	data = cursor.fetchall() 
+	return render_template("participants.html", data=data) 
+
+# def welcome():
+# 	return 'hello shokufa'
+
+if __name__ == '__main__': 
+	app.run(debug=True) 
