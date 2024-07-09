@@ -93,3 +93,46 @@ hr {
     background-color: var(--background-header-title-1);
     box-shadow: var(--box-shadow-3);
 }
+
+/* Media */
+
+@media (max-width: 900px) {
+    .div-header {
+        position: relative;
+        bottom: 0;
+        top: 0;
+        display: block;
+        margin: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .div-body {
+        margin: 1.5rem;
+        padding: 1.5rem;
+        display: block;
+    }
+
+    .title-body {
+        padding: 10px;
+    }
+
+    body {
+        display: block;
+    }
+
+    hr {
+        margin-left: 10px;
+    }
+
+    .p-about-me{
+        padding: 10px;
+    }
+}
+
+@media (max-width:1100px) {
+
+    .subdiv-body{
+        flex-basis: 100%;
+    }
+    
+}
