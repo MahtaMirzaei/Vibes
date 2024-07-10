@@ -34,6 +34,21 @@ body {
   align-items: flex-start;
   margin: 0;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+button {
+  border-radius: 5px;
+  background-color: #d6d6d6bf;
+}
+
+input {
+  border-radius: 5px;
+  background-color: #d6d6d6bf;
 }
 
 hr {
@@ -92,8 +107,70 @@ hr {
   background-color: var(--background-header-title-1);
   box-shadow: var(--box-shadow-3);
 }
+.post-container {
+  border: 1px solid #ddd;
+  align-items: center;
+  justify-content: baseline;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #00aa00;
+}
+.grl {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+.space {
+  margin-bottom: 10px;
+}
+.form-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
 
-/* Media */
+.form-group {
+  flex: 1 1 45%; /* Adjust the width of the form group elements */
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.form-group label {
+  font-size: var(--font-size-3);
+  color: var(--font-color-1);
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  padding: 10px;
+  font-size: var(--font-size-3);
+  border: 1px solid var(--border-out);
+  border-radius: 5px;
+  background-color: var(--background-sub-div-card);
+  color: var(--font-color-1);
+}
+
+.submit-btn {
+  padding: 10px 20px;
+  font-size: var(--font-size-3);
+  color: var(--font-color-1);
+  background-color: #f80;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #00aa00;
+}
+
+/* Responsive */
 
 @media (max-width: 900px) {
   .div-header {

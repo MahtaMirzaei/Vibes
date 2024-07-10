@@ -1,51 +1,66 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
-    <title>Flask and SQLite</title>
-  </head>
-  <body>
-    <form method="POST">
-      <label>Enter Name:</label>
-      <input
-        type="name"
-        name="name"
-        placeholder="Enter your name"
-        required
-      /><br />
-      <label>Enter Email:</label>
-      <input
-        type="email"
-        name="email"
-        placeholder="Enter your email"
-        required
-      /><br />
-      <label>Enter City:</label>
-      <input
-        type="name"
-        name="city"
-        placeholder="Enter your City name"
-        required
-      /><br />
-      <label>Enter Country:</label>
-      <input
-        type="name"
-        name="country"
-        placeholder="Enter the Country name"
-        required
-      /><br />
-      <label>Enter phone num:</label>
-      <input
-        type="name"
-        name="phone"
-        placeholder="Your Phone Number"
-        required
-      /><br />
-      <input type="submit" value="submit" /><br />
-    </form>
-  </body>
+<head>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="{{ url_for('static', filename='css/style.css') }}"
+  />
+  <title>Flask and SQLite</title>
+</head>
+<body>
+  <div class="post-container">
+    <h2>Sign Up</h2>
+    <div class="div-header">
+      <form method="POST" class="form-container">
+        <div class="form-group">
+          <label>Name:</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="vibe-user-x62"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Email:</label>
+          <input
+            type="email"
+            name="email"
+            placeholder="X62@gmail.com"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>City:</label>
+          <input
+            type="text"
+            name="city"
+            placeholder="IUT"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Country:</label>
+          <input
+            type="text"
+            name="country"
+            placeholder="Iran"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Cell number:</label>
+          <input
+            type="text"
+            name="phone"
+            placeholder="0262626123"
+            required
+          />
+        </div>
+        <input type="submit" value="Submit" class="submit-btn" />
+      </form>
+    </div>
+  </div>
+</body>
 </html>
