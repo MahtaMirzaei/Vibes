@@ -40,10 +40,6 @@ def join():
         age = request.form['age']
         password = request.form['password']
 
-        if not age.isdigit() or int(age) <= 8:
-            flash('Age must be a positive integer greater than 8.')
-            return redirect(url_for('join'))
-
         with sqlite3.connect("database.db") as users:
             cursor = users.cursor()
             cursor.execute("""
