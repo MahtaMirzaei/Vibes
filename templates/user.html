@@ -29,7 +29,9 @@
             </div>
         </div>
         <div>
-            <button onclick="checkPremium()">Get Premium</button>
+            {% if not is_premium %}
+                <button onclick="document.getElementById('premiumForm').style.display='block'">Get Premium</button>
+            {% endif %}
             <div id="premiumForm" style="display:none;">
                 {% if balance >= 1000 %}
                     <p>Are you certain to purchase premium?</p>

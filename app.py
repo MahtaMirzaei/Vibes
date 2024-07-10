@@ -13,9 +13,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Connect to the database and create the tables with the new schema
 with sqlite3.connect("database.db") as connect:
-    connect.execute("DROP TABLE IF EXISTS USERS")
-    connect.execute("DROP TABLE IF EXISTS PURCHASE_TYPES")
-    connect.execute("DROP TABLE IF EXISTS TRANSACTIONS")
 
     connect.execute(
         """
@@ -197,7 +194,8 @@ def user():
     if "user_id" in session:
         return render_template("user.html", name=session["name"], balance=session["balance"], is_premium=session["is_premium"])
     else:
-        return redirect(url_for("login"))	
+        return redirect(url_for("login"))
+    
 @app.route("/charge", methods=["POST"])
 def charge():
     if "user_id" in session:
@@ -208,43 +206,65 @@ def charge():
             return redirect(url_for("user"))
 
         user_id = session["user_id"]
-        admin_id = "1"
-        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        bank_id = "2"  # Assuming bank's user_id is 2
+        transaction_id_user = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        transaction_id_bank = "".join(random.choices(string.ascii_letters + string.digits, k=12))
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        with sqlite3.connect("database.db") as connect:
-            cursor = connect.cursor()
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
 
-            cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
-            cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (amount, admin_id))
+                # Update user's balance
+                cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
 
-            cursor.execute(
-                """
-                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
-                VALUES (?, ?, ?, ?)
-            """, (transaction_id, user_id, date, amount)
-            )
+                # Deduct the same amount from bank's balance
+                cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (amount, bank_id))
 
-            cursor.execute(
-                """
-                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
-                VALUES (?, ?, ?, ?)
-            """, (transaction_id, admin_id, date, -amount)
-            )
+                # Insert transaction records for user and bank
+                cursor.execute(
+                    """
+                    INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (transaction_id_user, user_id, bank_id, amount, date)
+                )
 
-            connect.commit()
+                cursor.execute(
+                    """
+                    INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (transaction_id_bank, bank_id, user_id, -amount, date)
+                )
 
-        session["balance"] += amount
-        return redirect(url_for("user"))
+                connect.commit()
+
+                session["balance"] += amount
+                flash(f"You successfully charged {amount} to your account.")
+                return redirect(url_for("user"))
+
+        except sqlite3.Error as e:
+            logging.error(f"SQLite error during charge: {e}")
+            flash("Database error occurred. Please try again later.")
+            return redirect(url_for("user"))
+
+        except Exception as e:
+            logging.error(f"Error during charge: {e}")
+            flash("An error occurred during charging your account.")
+            return redirect(url_for("user"))
+
     else:
         return redirect(url_for("login"))
 
+    
 @app.route("/premium", methods=["POST"])
 def premium():
     if "user_id" in session:
         user_id = session["user_id"]
-        admin_id = "1"
-        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        admin_id = "1"  # Assuming admin's user_id is 1
+        transaction_id_user = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        transaction_id_admin = "".join(random.choices(string.ascii_letters + string.digits, k=12))
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         premium_cost = 1000
 
@@ -252,34 +272,57 @@ def premium():
             flash("You don't have enough credit, please charge first.")
             return redirect(url_for("user"))
 
-        with sqlite3.connect("database.db") as connect:
-            cursor = connect.cursor()
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
 
-            cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (premium_cost, user_id))
-            cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (premium_cost, admin_id))
-            cursor.execute("UPDATE USERS SET is_premium = 1 WHERE user_id = ?", (user_id,))
+                # Deduct premium cost from user's balance
+                cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (premium_cost, user_id))
 
-            cursor.execute(
-                """
-                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
-                VALUES (?, ?, ?, ?)
-            """, (transaction_id, user_id, date, -premium_cost)
-            )
+                # Add premium cost to admin's balance
+                cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (premium_cost, admin_id))
 
-            cursor.execute(
-                """
-                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
-                VALUES (?, ?, ?, ?)
-            """, (transaction_id, admin_id, date, premium_cost)
-            )
+                # Update user's premium status
+                cursor.execute("UPDATE USERS SET is_premium = 1 WHERE user_id = ?", (user_id,))
 
-            connect.commit()
+                # Insert transaction records for user and admin
+                cursor.execute(
+                    """
+                    INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (transaction_id_user, user_id, admin_id, -premium_cost, date)
+                )
 
-        session["balance"] -= premium_cost
-        session["is_premium"] = 1
-        return redirect(url_for("user"))
+                cursor.execute(
+                    """
+                    INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (transaction_id_admin, admin_id, user_id, premium_cost, date)
+                )
+
+                connect.commit()
+
+                session["balance"] -= premium_cost
+                session["is_premium"] = 1
+                flash("Congratulations! You are now a premium member.")
+                return redirect(url_for("user"))
+
+        except sqlite3.Error as e:
+            logging.error(f"SQLite error during premium purchase: {e}")
+            flash("Database error occurred. Please try again later.")
+            return redirect(url_for("user"))
+
+        except Exception as e:
+            logging.error(f"Error during premium purchase: {e}")
+            flash("An error occurred during purchasing premium membership.")
+            return redirect(url_for("user"))
+
     else:
         return redirect(url_for("login"))
-    
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
