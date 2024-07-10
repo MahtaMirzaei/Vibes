@@ -44,34 +44,46 @@
   </head>
 
   <body>
-    <div class="div-header">
-      <img
-        src="{{ url_for('static', filename='Icon/android-chrome-512x512.png') }}"
-        width="100px"
-      />
-      <h1>Vibes</h1>
-
-      <div class="div-title">
-        <button
-          class="btn"
-          type="button"
-          onclick="window.location.href='/join';"
-        >
-          Sign Up
-        </button>
+    <div class="top-block">
+      <div class="left-block">
+        <div class="button-block">
+          <button
+            class="btn"
+            type="button"
+            onclick="window.location.href='/join';"
+          >
+            Sign Up
+          </button>
+        </div>
+        <div class="button-block">
+          <button
+            class="btn"
+            type="button"
+            onclick="window.location.href='/participant';"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+      <div class="right-block">
+        <h2 class="good-vibes-heading">Good Vibes</h2>
+      </div>
+    </div>
+    <div class="container">
+      <div class="div-header">
+        <h1>Top Songs</h1>
+        <hr />
       </div>
 
-      <div class="div-title">
-        <button
-          class="btn"
-          type="button"
-          onclick="window.location.href='/participant';"
-        >
-          Check participant list
-        </button>
+      <div class="div-header">
+        <h1>Top Artists</h1>
+        <hr />
       </div>
 
-      <hr />
+      <div class="div-header">
+        <h1>Top Albums</h1>
+        <hr />
+      </div>
     </div>
   </body>
 </html>
