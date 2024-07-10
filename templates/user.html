@@ -29,6 +29,11 @@
             </div>
         </div>
         <div>
+            {% if is_artist %}
+                <a href="{{ url_for('artist_page') }}"><button>Artist Page</button></a>
+            {% endif %}
+        </div>
+        <div>
             {% if not is_premium %}
                 <button onclick="document.getElementById('premiumForm').style.display='block'">Get Premium</button>
             {% endif %}
@@ -43,6 +48,11 @@
                     <p>You don't have enough credit, please charge first.</p>
                 {% endif %}
             </div>
+        </div>
+        <div>
+            <form action="{{ url_for('logout') }}" method="post">
+                <button type="submit">Logout</button>
+            </form>
         </div>
     </div>
     <script>
