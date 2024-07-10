@@ -197,6 +197,89 @@ def user():
     if "user_id" in session:
         return render_template("user.html", name=session["name"], balance=session["balance"], is_premium=session["is_premium"])
     else:
+        return redirect(url_for("login"))	
+@app.route("/charge", methods=["POST"])
+def charge():
+    if "user_id" in session:
+        amount = int(request.form["amount"])
+
+        if amount <= 0:
+            flash("Amount must be a positive integer")
+            return redirect(url_for("user"))
+
+        user_id = session["user_id"]
+        admin_id = "1"
+        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        with sqlite3.connect("database.db") as connect:
+            cursor = connect.cursor()
+
+            cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
+            cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (amount, admin_id))
+
+            cursor.execute(
+                """
+                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
+                VALUES (?, ?, ?, ?)
+            """, (transaction_id, user_id, date, amount)
+            )
+
+            cursor.execute(
+                """
+                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
+                VALUES (?, ?, ?, ?)
+            """, (transaction_id, admin_id, date, -amount)
+            )
+
+            connect.commit()
+
+        session["balance"] += amount
+        return redirect(url_for("user"))
+    else:
         return redirect(url_for("login"))
+
+@app.route("/premium", methods=["POST"])
+def premium():
+    if "user_id" in session:
+        user_id = session["user_id"]
+        admin_id = "1"
+        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        premium_cost = 1000
+
+        if session["balance"] < premium_cost:
+            flash("You don't have enough credit, please charge first.")
+            return redirect(url_for("user"))
+
+        with sqlite3.connect("database.db") as connect:
+            cursor = connect.cursor()
+
+            cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (premium_cost, user_id))
+            cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (premium_cost, admin_id))
+            cursor.execute("UPDATE USERS SET is_premium = 1 WHERE user_id = ?", (user_id,))
+
+            cursor.execute(
+                """
+                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
+                VALUES (?, ?, ?, ?)
+            """, (transaction_id, user_id, date, -premium_cost)
+            )
+
+            cursor.execute(
+                """
+                INSERT INTO TRANSACTIONS (transaction_id, user_id, date, amount)
+                VALUES (?, ?, ?, ?)
+            """, (transaction_id, admin_id, date, premium_cost)
+            )
+
+            connect.commit()
+
+        session["balance"] -= premium_cost
+        session["is_premium"] = 1
+        return redirect(url_for("user"))
+    else:
+        return redirect(url_for("login"))
+    
 if __name__ == "__main__":
     app.run(debug=True)
