@@ -75,6 +75,51 @@ with sqlite3.connect("database.db") as connect:
         VALUES ('0', '1', '2', '2/2/2', 1000 )
     """
     )
+with sqlite3.connect("database.db") as connect:
+    connect.execute(
+        """
+        CREATE TABLE IF NOT EXISTS ALBUM (
+            album_id INT PRIMARY KEY,
+            name TEXT,
+            release_date DATE,
+            genre TEXT
+        )
+        """
+    )
+
+with sqlite3.connect("database.db") as connect:
+    connect.execute(
+        """
+        CREATE TABLE IF NOT EXISTS SONGS (
+            song_id INT PRIMARY KEY,
+            artist_id INT DEFAULT 0,
+            album_id INT DEFAULT 0,
+            name TEXT,
+            file TEXT,
+            lyrics TEXT,
+            release_date DATE,
+            age_rating INTEGER CHECK(age_rating >= 9 AND age_rating <= 120),
+            genre TEXT,
+            duration INTEGER,
+            is_limited BOOLEAN DEFAULT 0,
+            FOREIGN KEY(album_id) REFERENCES album(album_id)
+        )
+    """
+    )
+
+with sqlite3.connect("database.db") as songs:
+    cursor = songs.cursor()
+    cursor.execute(
+        """
+        INSERT INTO SONGS ( artist_id, album_id, name, file, lyrics, release_date, age_rating, genre, duration, is_limited)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (13, 14, 'Try Everything', 'None', 'None', '2018-09-11', 12, 'happy', 1234, 0)
+    )
+    songs.commit()
+
+# :)
+
 
 @app.route("/")
 def index():
@@ -106,13 +151,19 @@ def join():
     else:
         return render_template("join.html")
 
+
 @app.route("/participant")
 def participants():
     with sqlite3.connect("database.db") as connect:
         cursor = connect.cursor()
+
         cursor.execute("SELECT * FROM USERS")
         data = cursor.fetchall()
-    return render_template("participants.html", data=data)
+
+        cursor.execute("SELECT * FROM SONGS")
+        song_data = cursor.fetchall()
+
+    return render_template("participants.html", data=data, song_data=song_data)
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route("/transfer", methods=["GET", "POST"])
