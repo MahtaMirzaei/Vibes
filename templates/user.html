@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='Icon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='Icon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='Icon/site.webmanifest') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <title>User Page</title>
+</head>
+<body>
+    <div class="div-header">
+        <h1>Welcome, {{ name }}!</h1>
+        <p>Your Balance: {{ balance }}</p>
+        <div>
+            <button onclick="document.getElementById('chargeForm').style.display='block'">Charge Account</button>
+            <div id="chargeForm" style="display:none;">
+                <form method="post" action="{{ url_for('charge') }}">
+                    <input type="number" name="amount" required>
+                    <button type="submit">Charge</button>
+                </form>
+            </div>
+        </div>
+        <div>
+            {% if is_artist %}
+                <a href="{{ url_for('artist_page') }}"><button>Artist Page</button></a>
+            {% endif %}
+        </div>
+        <div>
+            {% if not is_premium %}
+                <button onclick="document.getElementById('premiumForm').style.display='block'">Get Premium</button>
+            {% endif %}
+            <div id="premiumForm" style="display:none;">
+                {% if balance >= 1000 %}
+                    <p>Are you certain to purchase premium?</p>
+                    <form method="post" action="{{ url_for('premium') }}">
+                        <button type="submit">Proceed</button>
+                    </form>
+                    <button onclick="document.getElementById('premiumForm').style.display='none'">No</button>
+                {% else %}
+                    <p>You don't have enough credit, please charge first.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <form action="{{ url_for('logout') }}" method="post">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        function checkPremium() {
+            document.getElementById('premiumForm').style.display='block';
+        }
+    </script>
+</body>
+</html>
