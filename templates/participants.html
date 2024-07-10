@@ -57,7 +57,38 @@
 
   <body>
     <div class="div-header">
-      <h1>Participants List</h1>
+      <h1>Songs List</h1>
+      <table style="width: 100%">
+        <tr>
+          <th>Song ID</th>
+          <th>Artist ID</th>
+          <th>Album ID</th>
+          <th>name</th>
+          <th>file</th>
+          <th>lyrics</th>
+          <th>release date</th>
+          <th>age rating</th>
+          <th>genre</th>
+          <th>duration</th>
+          <th>is_limited</th>
+        </tr>
+        {% for songs in song_data %}
+        <tr>
+          <td>{{ songs[0] }}</td>
+          <td>{{ songs[1] }}</td>
+          <td>{{ songs[2] }}</td>
+          <td>{{ songs[3] }}</td>
+          <td>{{ songs[4] }}</td>
+          <td>{{ songs[5] }}</td>
+          <td>{{ songs[6] }}</td>
+          <td>{{ songs[7] }}</td>
+          <td>{{ songs[8] }}</td>
+          <td>{{ songs[9] }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <h1>Users List</h1>
       <table style="width: 100%">
         <tr>
           <th>User ID</th>
@@ -82,7 +113,6 @@
           <td>{{ participant[6] }}</td>
           <td>{{ participant[7] }}</td>
           <td>{{ participant[8] }}</td>
-          <td>{{ participant[9] }}</td>
         </tr>
         {% endfor %}
       </table>
