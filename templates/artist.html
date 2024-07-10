@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link
+    rel="stylesheet"
+    type="text/css"
+    href="{{ url_for('static', filename='css/style.css') }}"
+  />
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Page</title>
+</head>
+<body>
+    <h1>Your Concerts</h1>
+    <ul>
+        {% for concert in concerts %}
+            <li>
+                <strong>{{ concert[1] }}</strong> - Date: {{ concert[2] }} - Price: {{ concert[3] }} - Tickets: {{ concert[4] }}
+                <form action="{{ url_for('artist_page') }}" method="post" style="display:inline;">
+                    <input type="hidden" name="concert_id" value="{{ concert[0] }}">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Add Concert</h2>
+    <form action="{{ url_for('artist_page') }}" method="post">
+        <input type="hidden" name="action" value="add">
+        <label for="name">Concert Name:</label>
+        <input type="text" id="name" name="name" required>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" step="0.01" required>
+        <label for="ticket_number">Number of Tickets:</label>
+        <input type="number" id="ticket_number" name="ticket_number" required>
+        <button type="submit">Add Concert</button>
+    </form>
+</body>
+</html>

@@ -29,7 +29,7 @@
 }
 
 body {
-  background-color: var(--background-body);
+  background-color:#e2e2e2;
   box-sizing: border-box;
   align-items: flex-start;
   margin: 0;

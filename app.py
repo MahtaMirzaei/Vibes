@@ -45,6 +45,19 @@ with sqlite3.connect("database.db") as connect:
     """
     )
     connect.execute(
+                """
+                CREATE TABLE IF NOT EXISTS concerts (
+                    concert_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    price DECIMAL(10, 2) NOT NULL,
+                    ticket_number INTEGER NOT NULL,
+                    user_id TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES USERS (user_id)
+                )
+                """
+    )
+    connect.execute(
         """
         INSERT OR IGNORE  INTO USERS (user_id, name, email, city, country, phone, age, password, balance, is_artist, is_premium)
         VALUES (1, 'admin', 'a@mail.com' , 'Isfahan', 'Iran', 1212, 100, 123123, 99999999999, 1, 1)
@@ -181,6 +194,7 @@ def login():
                 session["user_id"] = user[0]
                 session["name"] = user[1]
                 session["balance"] = user[8]
+                session["is_artist"] = user[9]
                 session["is_premium"] = user[10]
                 return redirect(url_for("user"))
             else:
@@ -188,13 +202,77 @@ def login():
                 return redirect(url_for("login"))
     else:
         return render_template("login.html")
-    
+
 @app.route("/user")
 def user():
     if "user_id" in session:
-        return render_template("user.html", name=session["name"], balance=session["balance"], is_premium=session["is_premium"])
+        user_id = session["user_id"]
+        name = session["name"]
+        balance = session["balance"]
+        is_premium = session["is_premium"]
+        is_artist = session["is_artist"]
+
+        return render_template("user.html", user_id=user_id, name=name, balance=balance, is_premium=is_premium, is_artist=is_artist)
     else:
         return redirect(url_for("login"))
+
+@app.route("/artist_page", methods=["GET", "POST"])
+def artist_page():
+    if "user_id" in session and session.get("is_artist"):
+        user_id = session["user_id"]
+
+        if request.method == "POST":
+            action = request.form["action"]
+
+            if action == "add":
+                name = request.form["name"]
+                date = request.form["date"]
+                price = request.form["price"]
+                ticket_number = request.form["ticket_number"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "INSERT INTO concerts (name, date, price, ticket_number, user_id) VALUES (?, ?, ?, ?, ?)",
+                            (name, date, price, ticket_number, user_id),
+                        )
+                        connect.commit()
+                        flash("Concert successfully added.")
+                except Exception as e:
+                    logging.error(f"Error adding concert: {e}")
+                    flash("An error occurred while adding the concert.")
+
+            elif action == "delete":
+                concert_id = request.form["concert_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "DELETE FROM concerts WHERE concert_id = ? AND user_id = ?", (concert_id, user_id)
+                        )
+                        connect.commit()
+                        flash("Concert successfully deleted.")
+                except Exception as e:
+                    logging.error(f"Error deleting concert: {e}")
+                    flash("An error occurred while deleting the concert.")
+
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute("SELECT concert_id, name, date, price, ticket_number FROM concerts WHERE user_id = ?", (user_id,))
+                concerts = cursor.fetchall()
+
+            return render_template("artist.html", concerts=concerts, user_id=user_id)
+
+        except Exception as e:
+            logging.error(f"Error fetching artist page: {e}")
+            flash("An error occurred while fetching the artist page.")
+            return redirect(url_for("user"))
+    else:
+        flash("Access denied: You are not an artist.")
+        return redirect(url_for("user"))
     
 @app.route("/charge", methods=["POST"])
 def charge():
@@ -321,6 +399,13 @@ def premium():
 
     else:
         return redirect(url_for("login"))
+    
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    flash("You have been logged out.")
+    return redirect(url_for("login"))
 
 
 
