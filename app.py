@@ -435,6 +435,7 @@ def logout():
     flash("You have been logged out.")
     return redirect(url_for("login"))
 
+
 @app.route("/artist_page", methods=["GET", "POST"])
 def artist_page():
     if "user_id" in session and session.get("is_artist"):
@@ -469,7 +470,8 @@ def artist_page():
                     with sqlite3.connect("database.db") as connect:
                         cursor = connect.cursor()
                         cursor.execute(
-                            "DELETE FROM concerts WHERE concert_id = ? AND user_id = ?", (concert_id, user_id)
+                            "DELETE FROM concerts WHERE concert_id = ? AND user_id = ?",
+                            (concert_id, user_id),
                         )
                         connect.commit()
                         flash("Concert successfully deleted.")
@@ -495,7 +497,17 @@ def artist_page():
                             INSERT INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, album_id, user_id)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """,
-                            (song_name, file, lyrics, release_date, age_rating, genre, duration, album_id, user_id),
+                            (
+                                song_name,
+                                file,
+                                lyrics,
+                                release_date,
+                                age_rating,
+                                genre,
+                                duration,
+                                album_id,
+                                user_id,
+                            ),
                         )
                         connect.commit()
                         flash("Song successfully added.")
@@ -509,7 +521,8 @@ def artist_page():
                     with sqlite3.connect("database.db") as connect:
                         cursor = connect.cursor()
                         cursor.execute(
-                            "DELETE FROM songs WHERE song_id = ? AND user_id = ?", (song_id, user_id)
+                            "DELETE FROM songs WHERE song_id = ? AND user_id = ?",
+                            (song_id, user_id),
                         )
                         connect.commit()
                         flash("Song successfully deleted.")
@@ -517,18 +530,70 @@ def artist_page():
                     logging.error(f"Error deleting song: {e}")
                     flash("An error occurred while deleting the song.")
 
+            elif action == "delete_album":
+                album_id = request.form["album_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "DELETE FROM ALBUM WHERE album_id = ? AND user_id = ?",
+                            (album_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Album successfully deleted.")
+                except Exception as e:
+                    logging.error(f"Error deleting album: {e}")
+                    flash("An error occurred while deleting the album.")
+                    
+
+            elif action == "add_album":
+                name = request.form["album_name"]
+                release_date = request.form["release_date"]
+                genre = request.form["genre"]
+
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+
+                        # Inserting into the ALBUM table with auto-incremented primary key
+                        cursor.execute(
+                            "INSERT INTO ALBUM (name, release_date, genre, user_id) VALUES (?, ?, ?, ?)",
+                            (name, release_date, genre, user_id),
+                        )
+                        connect.commit()
+                        flash("Album successfully added.")
+                except Exception as e:
+                    logging.error(f"Error adding album: {e}")
+                    flash("An error occurred while adding the album.")
+
+            # Redirect to artist_page after processing POST request
             return redirect(url_for("artist_page"))
 
         try:
             with sqlite3.connect("database.db") as connect:
                 cursor = connect.cursor()
-                cursor.execute("SELECT concert_id, name, date, price, ticket_number FROM concerts WHERE user_id = ?", (user_id,))
+                cursor.execute(
+                    "SELECT concert_id, name, date, price, ticket_number FROM concerts WHERE user_id = ?",
+                    (user_id,),
+                )
                 concerts = cursor.fetchall()
 
-                cursor.execute("SELECT song_id, name, album_id, release_date, genre, duration FROM songs WHERE user_id = ?", (user_id,))
+                cursor.execute(
+                    "SELECT song_id, name, album_id, release_date, genre, duration FROM songs WHERE user_id = ?",
+                    (user_id,),
+                )
                 songs = cursor.fetchall()
+                cursor.execute(
+                    "SELECT album_id, name, release_date, genre FROM ALBUM WHERE user_id = ?",
+                    (user_id,),
+                )
+                albums = cursor.fetchall()
 
-            return render_template("artist.html", concerts=concerts, songs=songs, user_id=user_id)
+            return render_template(
+                "artist.html", concerts=concerts, songs=songs, albums=albums, user_id=user_id
+            )
 
         except Exception as e:
             logging.error(f"Error fetching artist page: {e}")
