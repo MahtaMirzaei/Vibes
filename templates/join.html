@@ -1,57 +1,68 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}"
-    />
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}">
     <title>Join</title>
-  </head>
-
-  <body>
-    <div class="div-header">
-      <h1>Join Us</h1>
-      <form method="post" action="{{ url_for('join') }}">
-        <div class="form-group">
-          <label for="name">Name:</label>
-          <input type="text" name="name" required />
-        </div>
-        <div class="form-group">
-          <label for="email">Email:</label>
-          <input type="email" name="email" required />
-        </div>
-        <div class="form-group">
-          <label for="city">City:</label>
-          <input type="text" name="city" required />
-        </div>
-        <div class="form-group">
-          <label for="country">Country:</label>
-          <input type="text" name="country" required />
-        </div>
-        <div class="form-group">
-          <label for="phone">Phone:</label>
-          <input type="text" name="phone" required />
-        </div>
-        <div class="form-group">
-          <label for="age">Age:</label>
-          <input type="number" name="age" min="9" mux="120" required />
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" name="password" required />
-        </div>
-        <button type="submit" class="submit-btn">Join</button>
-      </form>
+    <style>
+        body {
+            background-color: #1e1e1f; /* Dark background color */
+            color: #ffffff; /* White text color */
+        }
+        .form-label {
+            color: #ffffff; /* White label text color */
+        }
+        .btn-custom {
+            background-color: #9400d3; /* Purple button color */
+            color: #ffffff; /* White text color */
+            border: none;
+        }
+        .btn-custom:hover {
+            background-color: #7500a9; /* Darker purple on hover */
+        }
+    </style>
+</head>
+<body class="bg-dark text-light">
+    <div class="container mt-4">
+        <h1 class="text-center">Join Us</h1>
+        <form method="post" action="{{ url_for('join') }}" class="mb-4">
+            <div class="form-group">
+                <label for="name" class="form-label">Name:</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="email" class="form-label">Email:</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="city" class="form-label">City:</label>
+                <input type="text" name="city" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="country" class="form-label">Country:</label>
+                <input type="text" name="country" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone:</label>
+                <input type="text" name="phone" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="age" class="form-label">Age:</label>
+                <input type="number" name="age" class="form-control" min="9" max="120" required>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-custom">Join</button>
+        </form>
     </div>
-  </body>
+</body>
 </html>
