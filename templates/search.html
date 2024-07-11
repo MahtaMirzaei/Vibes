@@ -40,50 +40,31 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     />
-    <title>Home page</title>
+    <title>User Page</title>
   </head>
-
   <body>
-    <div class="top-block">
-      <div class="left-block">
-        <div class="button-block">
-          <button
-            class="btn"
-            type="button"
-            onclick="window.location.href='/join';"
-          >
-            Sign Up
-          </button>
-        </div>
-        <div class="button-block">
-          <button
-            class="btn"
-            type="button"
-            onclick="window.location.href='/login';"
-          >
-            Login
-          </button>
-        </div>
-      </div>
-      <div class="right-block">
-        <h2 class="good-vibes-heading">Good Vibes</h2>
-      </div>
-    </div>
-    <div class="container">
-      <div class="div-header">
-        <h1>Top Songs</h1>
-        <hr />
-      </div>
-
-      <div class="div-header">
-        <h1>Top Artists</h1>
-        <hr />
-      </div>
-
-      <div class="div-header">
-        <h1>Top Albums</h1>
-        <hr />
-      </div>
+    <div class="div-header">
+      <h2>Search Results</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Song Name</th>
+            <th>Artist</th>
+            <th>Age</th>
+            <th>Genre</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in data %}
+          <tr>
+            <td>{{ item.song_name }}</td>
+            <td>{{ item.artist }}</td>
+            <td>{{ item.age }}</td>
+            <td>{{ item.genre }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </body>
 </html>
