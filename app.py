@@ -138,6 +138,12 @@ with sqlite3.connect("database.db") as connect:
         VALUES ('0', '1', '2', '2/2/2', 1000 )
     """
     )
+    connect.execute(
+        """
+        INSERT OR IGNORE  INTO playlists (playlist_id, creator_id, playlist_name, genre, is_private)
+        VALUES ('0', '1', 'kitty', 'haappy', 0 )
+    """
+    )
 
 
 @app.route("/")
@@ -903,13 +909,13 @@ def buy_ticket():
 
 @app.route("/create_playlist", methods=["GET", "POST"])
 def create_playlist():
-    if "user_id" in session:
-        user_id = session["user_id"]
-        if request.method == "POST":
+    if request.method == "POST":
+        if "user_id" in session:
+            user_id = session["user_id"]
             playlist_name = request.form["playlist_name"]
             genre = request.form["genre"]
             is_private = request.form.get("is_private") == "on"
-            
+
             try:
                 with sqlite3.connect("database.db") as connect:
                     cursor = connect.cursor()
@@ -919,26 +925,67 @@ def create_playlist():
                     )
                     connect.commit()
                     flash("Playlist successfully created.")
-                    return redirect(url_for("user"))
+                    return redirect(url_for("create_playlist"))
             except Exception as e:
                 logging.error(f"Error creating playlist: {e}")
                 flash("An error occurred while creating the playlist.")
-        
+
+    if "user_id" in session:
+        user_id = session["user_id"]
         try:
             with sqlite3.connect("database.db") as connect:
                 cursor = connect.cursor()
                 cursor.execute(
                     "SELECT playlist_id, playlist_name FROM playlists WHERE creator_id = ?",
-                    (user_id,),
+                    (user_id,)
                 )
                 playlists = cursor.fetchall()
 
-            return render_template("create_playlist.html", playlists=playlists)
+                def get_songs_in_playlist(playlist_id):
+                    cursor.execute(
+                        """
+                        SELECT songs.song_id, songs.name, songs.genre, songs.duration
+                        FROM songs
+                        INNER JOIN playlist_songs ON songs.song_id = playlist_songs.song_id
+                        WHERE playlist_songs.playlist_id = ?
+                        """,
+                        (playlist_id,)
+                    )
+                    return cursor.fetchall()
+
+            return render_template("create_playlist.html", playlists=playlists, get_songs_in_playlist=get_songs_in_playlist)
 
         except Exception as e:
             logging.error(f"Error fetching playlists: {e}")
             flash("An error occurred while fetching playlists.")
             return redirect(url_for("user"))
+
+    else:
+        flash("You are not authorized to access this page.")
+        return redirect(url_for("home_page"))
+
+
+@app.route("/add_song_to_playlist", methods=["POST"])
+def add_song_to_playlist():
+    if "user_id" in session:
+        playlist_id = request.form["playlist_id"]
+        song_id = request.form["song_id"]
+
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute(
+                    "INSERT INTO playlist_songs (playlist_id, song_id) VALUES (?, ?)",
+                    (playlist_id, song_id)
+                )
+                connect.commit()
+                flash("Song successfully added to the playlist.")
+                return redirect(url_for("create_playlist"))
+
+        except Exception as e:
+            logging.error(f"Error adding song to playlist: {e}")
+            flash("An error occurred while adding the song to the playlist.")
+            return redirect(url_for("create_playlist"))
 
     else:
         flash("You are not authorized to access this page.")

@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link
-    rel="stylesheet"
-    type="text/css"
-    href="{{ url_for('static', filename='css/style.css') }}"
-  />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Playlist</title>
 </head>
 <body>
     <h1>Create Playlist</h1>
+    
     <form action="{{ url_for('create_playlist') }}" method="POST">
         <label for="playlist_name">Playlist Name:</label>
         <input type="text" id="playlist_name" name="playlist_name" required><br>
@@ -24,5 +21,26 @@
         
         <button type="submit">Create Playlist</button>
     </form>
+
+    <h2>Your Playlists</h2>
+    <div class="playlist-container">
+        {% for playlist in playlists %}
+        <div class="playlist">
+            <h3>{{ playlist[1] }}</h3>
+            <ul>
+                {% for song in get_songs_in_playlist(playlist[0]) %}
+                <li>{{ song[1] }} - {{ song[2] }} - {{ song[3] }}</li>
+                {% endfor %}
+            </ul>
+            <form action="{{ url_for('add_song_to_playlist') }}" method="POST">
+                <input type="hidden" name="playlist_id" value="{{ playlist[0] }}">
+                <label for="song_id">Add Song ID:</label>
+                <input type="text" id="song_id" name="song_id" required>
+                <button type="submit">Add Song to Playlist</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    
 </body>
 </html>
