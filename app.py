@@ -443,7 +443,7 @@ def artist_page():
         if request.method == "POST":
             action = request.form["action"]
 
-            if action == "add":
+            if action == "add_concert":
                 name = request.form["name"]
                 date = request.form["date"]
                 price = request.form["price"]
@@ -462,7 +462,7 @@ def artist_page():
                     logging.error(f"Error adding concert: {e}")
                     flash("An error occurred while adding the concert.")
 
-            elif action == "delete":
+            elif action == "delete_concert":
                 concert_id = request.form["concert_id"]
 
                 try:
