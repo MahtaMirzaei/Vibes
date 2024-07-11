@@ -535,12 +535,72 @@ def artist_page():
                 try:
                     with sqlite3.connect("database.db") as connect:
                         cursor = connect.cursor()
+                    
+                        # Get concert details
+                    cursor.execute("SELECT price, user_id FROM concerts WHERE concert_id = ?", (concert_id,))
+                    concert = cursor.fetchone()
+                    if not concert:
+                        flash("Concert not found.")
+                        return redirect(url_for("artist_page"))
+                    
+                    concert_price, singer_id = concert
+
+                    # Get all tickets for the concert
+                    cursor.execute("SELECT user_id, ticket_price FROM TICKETS WHERE concert_id = ?", (concert_id,))
+                    tickets = cursor.fetchall()
+
+                    ticket_count = len(tickets)
+                    
+                    # Refund each user
+                    for ticket in tickets:
+                        ticket_user_id, ticket_price = ticket
+                        
+                        # Update user's balance
+                        cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (ticket_user_id,))
+                        user_balance = cursor.fetchone()[0]
+                        new_user_balance = user_balance + ticket_price
+                        cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_user_balance, ticket_user_id))
+                        
+                        # Create transaction for refund
+                        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+                        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
-                            "DELETE FROM concerts WHERE concert_id = ? AND user_id = ?",
-                            (concert_id, user_id),
+                            "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                            (transaction_id, singer_id, ticket_user_id, ticket_price, date)
                         )
-                        connect.commit()
-                        flash("Concert successfully deleted.")
+                    
+                    # Delete tickets
+                    cursor.execute("DELETE FROM TICKETS WHERE concert_id = ?", (concert_id,))
+                    
+                    # Refund admin's share to singer
+                    admin_id = 1
+                    admin_share_total = ticket_count * concert_price * 0.05
+                    
+                    cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (admin_id,))
+                    admin_balance = cursor.fetchone()[0]
+                    new_admin_balance = admin_balance - admin_share_total
+                    cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_admin_balance, admin_id))
+                    
+                    cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (singer_id,))
+                    singer_balance = cursor.fetchone()[0]
+                    new_singer_balance = singer_balance + admin_share_total
+                    cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_singer_balance, singer_id))
+
+                    # Create transaction for admin to singer refund
+                    transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+                    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute(
+                        "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                        (transaction_id, admin_id, singer_id, admin_share_total, date)
+                    )
+
+                    # Delete the concert
+                    cursor.execute("DELETE FROM concerts WHERE concert_id = ? AND user_id = ?", (concert_id, user_id))
+
+                    # Commit the transaction
+                    connect.commit()
+                    
+                    flash("Concert and related tickets successfully deleted. Refunds have been processed.")
                 except Exception as e:
                     logging.error(f"Error deleting concert: {e}")
                     flash("An error occurred while deleting the concert.")
