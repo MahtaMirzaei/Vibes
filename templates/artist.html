@@ -61,6 +61,11 @@
                         <input type="hidden" name="song_id" value="{{ song[0] }}">
                         <button type="submit">Delete</button>
                     </form>
+                    <form action="{{ url_for('artist_page') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="toggle_limit">
+                        <input type="hidden" name="song_id" value="{{ song[0] }}">
+                        <button type="submit">{{ 'Limit' if not song[6] else 'Unlimit' }}</button>
+                    </form>
                 </li>
                 {% endfor %}
             </ul>

@@ -514,6 +514,7 @@ def artist_page():
                 except Exception as e:
                     logging.error(f"Error adding song: {e}")
                     flash("An error occurred while adding the song.")
+
             elif action == "delete_song":
                 song_id = request.form["song_id"]
 
@@ -530,6 +531,28 @@ def artist_page():
                     logging.error(f"Error deleting song: {e}")
                     flash("An error occurred while deleting the song.")
 
+            elif action == "toggle_limit":
+                song_id = request.form["song_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "SELECT is_limited FROM songs WHERE song_id = ? AND user_id = ?",
+                            (song_id, user_id),
+                        )
+                        is_limited = cursor.fetchone()[0]
+                        new_status = 0 if is_limited else 1
+                        cursor.execute(
+                            "UPDATE songs SET is_limited = ? WHERE song_id = ? AND user_id = ?",
+                            (new_status, song_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Song limit status successfully toggled.")
+                except Exception as e:
+                    logging.error(f"Error toggling song limit status: {e}")
+                    flash("An error occurred while toggling the song limit status.")
+
             elif action == "delete_album":
                 album_id = request.form["album_id"]
 
@@ -545,19 +568,16 @@ def artist_page():
                 except Exception as e:
                     logging.error(f"Error deleting album: {e}")
                     flash("An error occurred while deleting the album.")
-                    
 
             elif action == "add_album":
                 name = request.form["album_name"]
                 release_date = request.form["release_date"]
                 genre = request.form["genre"]
 
-
                 try:
                     with sqlite3.connect("database.db") as connect:
                         cursor = connect.cursor()
 
-                        # Inserting into the ALBUM table with auto-incremented primary key
                         cursor.execute(
                             "INSERT INTO ALBUM (name, release_date, genre, user_id) VALUES (?, ?, ?, ?)",
                             (name, release_date, genre, user_id),
@@ -568,7 +588,6 @@ def artist_page():
                     logging.error(f"Error adding album: {e}")
                     flash("An error occurred while adding the album.")
 
-            # Redirect to artist_page after processing POST request
             return redirect(url_for("artist_page"))
 
         try:
@@ -581,10 +600,11 @@ def artist_page():
                 concerts = cursor.fetchall()
 
                 cursor.execute(
-                    "SELECT song_id, name, album_id, release_date, genre, duration FROM songs WHERE user_id = ?",
+                    "SELECT song_id, name, album_id, release_date, genre, duration, is_limited FROM songs WHERE user_id = ?",
                     (user_id,),
                 )
                 songs = cursor.fetchall()
+
                 cursor.execute(
                     "SELECT album_id, name, release_date, genre FROM ALBUM WHERE user_id = ?",
                     (user_id,),
