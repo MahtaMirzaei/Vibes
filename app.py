@@ -13,7 +13,19 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Connect to the database and create the tables with the new schema
 with sqlite3.connect("database.db") as connect:
-
+    connect.execute(
+    """
+    CREATE TABLE TICKETS (
+    ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    concert_id INTEGER,
+    user_id INTEGER,
+    ticket_price REAL,
+    FOREIGN KEY (concert_id) REFERENCES concerts(concert_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    
+    )
+"""
+    )
     connect.execute(
         """
         CREATE TABLE IF NOT EXISTS USERS (
@@ -612,7 +624,11 @@ def artist_page():
                 albums = cursor.fetchall()
 
             return render_template(
-                "artist.html", concerts=concerts, songs=songs, albums=albums, user_id=user_id
+                "artist.html",
+                concerts=concerts,
+                songs=songs,
+                albums=albums,
+                user_id=user_id,
             )
 
         except Exception as e:
