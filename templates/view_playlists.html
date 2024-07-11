@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Playlists</title>
+</head>
+<body>
+    <h1>Your Playlists</h1>
+    <ul>
+        {% for playlist in playlists %}
+        <li>
+            <b>{{ playlist[1] }}</b>
+            <form action="{{ url_for('add_song_to_playlist') }}" method="POST" style="display: inline;">
+                <input type="hidden" name="playlist_id" value="{{ playlist[0] }}">
+                <select name="song_id">
+                    {% for song in songs %}
+                    <option value="{{ song[0] }}">{{ song[1] }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Add Song</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+    

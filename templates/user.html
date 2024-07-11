@@ -151,6 +151,9 @@
           <li>Concert: {{ ticket[1] }} - Singer: {{ ticket[2] }} - Date: {{ ticket[3] }} - Ticket Price: ${{ ticket[4] }}</li>
           {% endfor %}
       </ul>
+      <a href="{{ url_for('create_playlist') }}">
+        <button type="button">Create New Playlist</button>
+    </a>
     </div>
     
     <script>

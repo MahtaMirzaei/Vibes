@@ -82,6 +82,26 @@ with sqlite3.connect("database.db") as connect:
             """
     )
     connect.execute(
+        """CREATE TABLE IF NOT EXISTS playlists (
+    playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    creator_id INTEGER,
+    playlist_name TEXT NOT NULL,
+    genre TEXT NOT NULL,
+    is_private BOOLEAN NOT NULL CHECK (is_private IN (0, 1)),
+    FOREIGN KEY (creator_id) REFERENCES users(user_id)
+)
+"""
+    )
+    connect.execute(
+        """CREATE TABLE IF NOT EXISTS playlist_songs (
+    playlist_id INTEGER,
+    song_id INTEGER,
+    FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id),
+    FOREIGN KEY (song_id) REFERENCES songs(song_id),
+    PRIMARY KEY (playlist_id, song_id)
+);"""
+    )
+    connect.execute(
         """
             CREATE TABLE IF NOT EXISTS SONGS (
                 song_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -880,6 +900,49 @@ def buy_ticket():
             return redirect(url_for("user"))
     else:
         return redirect(url_for("login"))
+
+@app.route("/create_playlist", methods=["GET", "POST"])
+def create_playlist():
+    if "user_id" in session:
+        user_id = session["user_id"]
+        if request.method == "POST":
+            playlist_name = request.form["playlist_name"]
+            genre = request.form["genre"]
+            is_private = request.form.get("is_private") == "on"
+            
+            try:
+                with sqlite3.connect("database.db") as connect:
+                    cursor = connect.cursor()
+                    cursor.execute(
+                        "INSERT INTO playlists (creator_id, playlist_name, genre, is_private) VALUES (?, ?, ?, ?)",
+                        (user_id, playlist_name, genre, is_private),
+                    )
+                    connect.commit()
+                    flash("Playlist successfully created.")
+                    return redirect(url_for("user"))
+            except Exception as e:
+                logging.error(f"Error creating playlist: {e}")
+                flash("An error occurred while creating the playlist.")
+        
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute(
+                    "SELECT playlist_id, playlist_name FROM playlists WHERE creator_id = ?",
+                    (user_id,),
+                )
+                playlists = cursor.fetchall()
+
+            return render_template("create_playlist.html", playlists=playlists)
+
+        except Exception as e:
+            logging.error(f"Error fetching playlists: {e}")
+            flash("An error occurred while fetching playlists.")
+            return redirect(url_for("user"))
+
+    else:
+        flash("You are not authorized to access this page.")
+        return redirect(url_for("home_page"))
 
 
 
