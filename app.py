@@ -443,7 +443,7 @@ def artist_page():
         if request.method == "POST":
             action = request.form["action"]
 
-            if action == "add_concert":
+            if action == "add":
                 name = request.form["name"]
                 date = request.form["date"]
                 price = request.form["price"]
@@ -462,7 +462,7 @@ def artist_page():
                     logging.error(f"Error adding concert: {e}")
                     flash("An error occurred while adding the concert.")
 
-            elif action == "delete_concert":
+            elif action == "delete":
                 concert_id = request.form["concert_id"]
 
                 try:
@@ -477,6 +477,31 @@ def artist_page():
                     logging.error(f"Error deleting concert: {e}")
                     flash("An error occurred while deleting the concert.")
 
+            elif action == "add_song":
+                song_name = request.form["song_name"]
+                file = request.form["file"]
+                lyrics = request.form["lyrics"]
+                release_date = request.form["release_date"]
+                age_rating = request.form["age_rating"]
+                genre = request.form["genre"]
+                duration = request.form["duration"]
+                album_id = request.form["album_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            """
+                            INSERT INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, album_id, user_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (song_name, file, lyrics, release_date, age_rating, genre, duration, album_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Song successfully added.")
+                except Exception as e:
+                    logging.error(f"Error adding song: {e}")
+                    flash("An error occurred while adding the song.")
             elif action == "delete_song":
                 song_id = request.form["song_id"]
 
