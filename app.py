@@ -84,6 +84,19 @@ with sqlite3.connect("database.db") as connect:
 
     connect.execute(
         """
+            CREATE TABLE IF NOT EXISTS PLAYLISTS (
+                playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                creator_id INTEGER,
+                playlist_name TEXT NOT NULL,
+                genre TEXT NOT NULL,
+                is_private BOOLEAN NOT NULL CHECK(is_private IN(0,1)),
+                FOREIGN KEY (creator_id) REFERENCES users(user_id)
+            )
+            """
+    )
+
+    connect.execute(
+        """
             CREATE TABLE IF NOT EXISTS song_likes (
             id SERIAL PRIMARY KEY,
             user_id TEXT,
@@ -322,6 +335,10 @@ def search():
                 table_name = "albums"
                 columns = ["album_name", "album_artist", "genre", "release_date"]
             elif search_category == "album_artist":
+                c.execute("SELECT a.name, u.name, a.genre, a.release_date FROM album a JOIN users u ON a.user_id = u.user_id WHERE u.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "albums"
+                columns = ["album_name", "album_artist", "genre", "release_date"]
+            elif search_category == "playlist_name":
                 c.execute("SELECT a.name, u.name, a.genre, a.release_date FROM album a JOIN users u ON a.user_id = u.user_id WHERE u.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
                 table_name = "albums"
                 columns = ["album_name", "album_artist", "genre", "release_date"]
