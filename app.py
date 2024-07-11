@@ -225,7 +225,6 @@ def transfer():
         user_id = request.form["user_id"]
         recipient_id = request.form["recipient_id"]
         amount = int(request.form["amount"])
-        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:
@@ -233,10 +232,8 @@ def transfer():
                 cursor = connect.cursor()
 
                 # Verify sender and recipient exist and have sufficient balance
-                cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (user_id,))
                 sender_balance = cursor.fetchone()
 
-                cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (recipient_id,))
                 recipient_balance = cursor.fetchone()
 
                 if not sender_balance or not recipient_balance:
@@ -251,8 +248,6 @@ def transfer():
                 new_sender_balance = sender_balance[0] - amount
                 new_recipient_balance = recipient_balance[0] + amount
 
-                cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_sender_balance, user_id))
-                cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_recipient_balance, recipient_id))
 
                 # Insert the transaction record
                 cursor.execute(
@@ -265,7 +260,6 @@ def transfer():
                 connect.commit()
 
                 # Log success
-                logging.info(f"Transfer successful: {amount} units from {user_id} to {recipient_id}")
 
             flash("Transfer successful!")
             return redirect(url_for("index"))
@@ -291,7 +285,6 @@ def login():
 
         with sqlite3.connect("database.db") as connect:
             cursor = connect.cursor()
-            cursor.execute("SELECT * FROM USERS WHERE email = ? AND password = ?", (email, password))
             user = cursor.fetchone()
 
             if user:
@@ -316,7 +309,6 @@ def user():
         is_premium = session["is_premium"]
         is_artist = session["is_artist"]
 
-        return render_template("user.html", user_id=user_id, name=name, balance=balance, is_premium=is_premium, is_artist=is_artist)
     else:
         return redirect(url_for("login"))
 
@@ -422,8 +414,6 @@ def charge():
 
         user_id = session["user_id"]
         bank_id = "2"  # Assuming bank's user_id is 2
-        transaction_id_user = "".join(random.choices(string.ascii_letters + string.digits, k=12))
-        transaction_id_bank = "".join(random.choices(string.ascii_letters + string.digits, k=12))
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:
@@ -431,10 +421,8 @@ def charge():
                 cursor = connect.cursor()
 
                 # Update user's balance
-                cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
 
                 # Deduct the same amount from bank's balance
-                cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (amount, bank_id))
 
                 # Insert transaction records for user and bank
                 cursor.execute(
@@ -442,7 +430,6 @@ def charge():
                     INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
                     VALUES (?, ?, ?, ?, ?)
                     """,
-                    (transaction_id_user, user_id, bank_id, amount, date)
                 )
 
                 cursor.execute(
@@ -450,7 +437,6 @@ def charge():
                     INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
                     VALUES (?, ?, ?, ?, ?)
                     """,
-                    (transaction_id_bank, bank_id, user_id, -amount, date)
                 )
 
                 connect.commit()
@@ -472,14 +458,11 @@ def charge():
     else:
         return redirect(url_for("login"))
 
-    
 @app.route("/premium", methods=["POST"])
 def premium():
     if "user_id" in session:
         user_id = session["user_id"]
         admin_id = "1"  # Assuming admin's user_id is 1
-        transaction_id_user = "".join(random.choices(string.ascii_letters + string.digits, k=12))
-        transaction_id_admin = "".join(random.choices(string.ascii_letters + string.digits, k=12))
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         premium_cost = 1000
 
@@ -492,13 +475,14 @@ def premium():
                 cursor = connect.cursor()
 
                 # Deduct premium cost from user's balance
-                cursor.execute("UPDATE USERS SET balance = balance - ? WHERE user_id = ?", (premium_cost, user_id))
 
                 # Add premium cost to admin's balance
-                cursor.execute("UPDATE USERS SET balance = balance + ? WHERE user_id = ?", (premium_cost, admin_id))
 
                 # Update user's premium status
                 cursor.execute("UPDATE USERS SET is_premium = 1 WHERE user_id = ?", (user_id,))
+                cursor.execute(
+                    "UPDATE USERS SET is_premium = 1 WHERE user_id = ?", (user_id,)
+                )
 
                 # Insert transaction records for user and admin
                 cursor.execute(
@@ -507,6 +491,7 @@ def premium():
                     VALUES (?, ?, ?, ?, ?)
                     """,
                     (transaction_id_user, user_id, admin_id, -premium_cost, date)
+                    (transaction_id_user, user_id, admin_id, -premium_cost, date),
                 )
 
                 cursor.execute(
@@ -515,6 +500,7 @@ def premium():
                     VALUES (?, ?, ?, ?, ?)
                     """,
                     (transaction_id_admin, admin_id, user_id, premium_cost, date)
+                    (transaction_id_admin, admin_id, user_id, premium_cost, date),
                 )
 
                 connect.commit()
@@ -538,6 +524,7 @@ def premium():
         return redirect(url_for("login"))
     
 
+
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
@@ -545,6 +532,193 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/artist_page", methods=["GET", "POST"])
+def artist_page():
+    if "user_id" in session and session.get("is_artist"):
+        user_id = session["user_id"]
+
+        if request.method == "POST":
+            action = request.form["action"]
+
+            if action == "add_concert":
+                name = request.form["name"]
+                date = request.form["date"]
+                price = request.form["price"]
+                ticket_number = request.form["ticket_number"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "INSERT INTO concerts (name, date, price, ticket_number, user_id) VALUES (?, ?, ?, ?, ?)",
+                            (name, date, price, ticket_number, user_id),
+                        )
+                        connect.commit()
+                        flash("Concert successfully added.")
+                except Exception as e:
+                    logging.error(f"Error adding concert: {e}")
+                    flash("An error occurred while adding the concert.")
+
+            elif action == "delete_concert":
+                concert_id = request.form["concert_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "DELETE FROM concerts WHERE concert_id = ? AND user_id = ?",
+                            (concert_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Concert successfully deleted.")
+                except Exception as e:
+                    logging.error(f"Error deleting concert: {e}")
+                    flash("An error occurred while deleting the concert.")
+
+            elif action == "add_song":
+                song_name = request.form["song_name"]
+                file = request.form["file"]
+                lyrics = request.form["lyrics"]
+                release_date = request.form["release_date"]
+                age_rating = request.form["age_rating"]
+                genre = request.form["genre"]
+                duration = request.form["duration"]
+                album_id = request.form["album_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            """
+                            INSERT INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, album_id, user_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                song_name,
+                                file,
+                                lyrics,
+                                release_date,
+                                age_rating,
+                                genre,
+                                duration,
+                                album_id,
+                                user_id,
+                            ),
+                        )
+                        connect.commit()
+                        flash("Song successfully added.")
+                except Exception as e:
+                    logging.error(f"Error adding song: {e}")
+                    flash("An error occurred while adding the song.")
+
+            elif action == "delete_song":
+                song_id = request.form["song_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "DELETE FROM songs WHERE song_id = ? AND user_id = ?",
+                            (song_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Song successfully deleted.")
+                except Exception as e:
+                    logging.error(f"Error deleting song: {e}")
+                    flash("An error occurred while deleting the song.")
+
+            elif action == "toggle_limit":
+                song_id = request.form["song_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "SELECT is_limited FROM songs WHERE song_id = ? AND user_id = ?",
+                            (song_id, user_id),
+                        )
+                        is_limited = cursor.fetchone()[0]
+                        new_status = 0 if is_limited else 1
+                        cursor.execute(
+                            "UPDATE songs SET is_limited = ? WHERE song_id = ? AND user_id = ?",
+                            (new_status, song_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Song limit status successfully toggled.")
+                except Exception as e:
+                    logging.error(f"Error toggling song limit status: {e}")
+                    flash("An error occurred while toggling the song limit status.")
+
+            elif action == "delete_album":
+                album_id = request.form["album_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "DELETE FROM ALBUM WHERE album_id = ? AND user_id = ?",
+                            (album_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Album successfully deleted.")
+                except Exception as e:
+                    logging.error(f"Error deleting album: {e}")
+                    flash("An error occurred while deleting the album.")
+
+            elif action == "add_album":
+                name = request.form["album_name"]
+                release_date = request.form["release_date"]
+                genre = request.form["genre"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+
+                        cursor.execute(
+                            "INSERT INTO ALBUM (name, release_date, genre, user_id) VALUES (?, ?, ?, ?)",
+                            (name, release_date, genre, user_id),
+                        )
+                        connect.commit()
+                        flash("Album successfully added.")
+                except Exception as e:
+                    logging.error(f"Error adding album: {e}")
+                    flash("An error occurred while adding the album.")
+
+            return redirect(url_for("artist_page"))
+
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute(
+                    "SELECT concert_id, name, date, price, ticket_number FROM concerts WHERE user_id = ?",
+                    (user_id,),
+                )
+                concerts = cursor.fetchall()
+
+                cursor.execute(
+                    "SELECT song_id, name, album_id, release_date, genre, duration, is_limited FROM songs WHERE user_id = ?",
+                    (user_id,),
+                )
+                songs = cursor.fetchall()
+
+                cursor.execute(
+                    "SELECT album_id, name, release_date, genre FROM ALBUM WHERE user_id = ?",
+                    (user_id,),
+                )
+                albums = cursor.fetchall()
+
+            return render_template(
+                "artist.html", concerts=concerts, songs=songs, albums=albums, user_id=user_id
+            )
+
+        except Exception as e:
+            logging.error(f"Error fetching artist page: {e}")
+            flash("An error occurred while fetching the artist page.")
+            return redirect(url_for("user"))
+    else:
+        flash("Access denied: You are not an artist.")
+        return redirect(url_for("user"))
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True)    app.run(debug=True)

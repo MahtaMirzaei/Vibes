@@ -40,6 +40,11 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     />
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Page</title>
   </head>
   <body>
@@ -58,6 +63,7 @@
             <button type="submit">Charge</button>
           </form>
         </div>
+<<<<<<< HEAD
       </div>
       <div>
         {% if is_artist %}
@@ -86,6 +92,35 @@
           {% else %}
           <p>You don't have enough credit, please charge first.</p>
           {% endif %}
+=======
+        <div>
+            {% if is_artist %}
+            <form action="{{ url_for('artist_page') }}" method="GET">
+                <button type="submit">Go to Artist Page</button>
+            </form>
+            {% endif %}
+        </div>
+        <div>
+            {% if not is_premium %}
+                <button onclick="document.getElementById('premiumForm').style.display='block'">Get Premium</button>
+            {% endif %}
+            <div id="premiumForm" style="display:none;">
+                {% if balance >= 1000 %}
+                    <p>Are you certain to purchase premium?</p>
+                    <form method="post" action="{{ url_for('premium') }}">
+                        <button type="submit">Proceed</button>
+                    </form>
+                    <button onclick="document.getElementById('premiumForm').style.display='none'">No</button>
+                {% else %}
+                    <p>You don't have enough credit, please charge first.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <form action="{{ url_for('logout') }}" method="post">
+                <button type="submit">Logout</button>
+            </form>
+>>>>>>> origin/mahta
         </div>
       </div>
       <div>
