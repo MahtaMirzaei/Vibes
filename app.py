@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 with sqlite3.connect("database.db") as connect:
     connect.execute(
     """
-    CREATE TABLE TICKETS (
+    CREATE TABLE IF NOT EXISTS TICKETS (
     ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
     concert_id INTEGER,
     user_id INTEGER,
@@ -270,6 +270,40 @@ def login():
     else:
         return render_template("login.html")
 
+
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if request.method == "POST":
+        search_category = request.form["search_category"]
+        search_input = request.form["search_input"]
+
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+
+        if search_category == "song_name":
+            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+        elif search_category == "artist":
+            c.execute("""
+                SELECT s.name, u.name, s.age_rating, s.genre
+                FROM songs s
+                JOIN users u ON s.user_id = u.user_id
+                WHERE u.name LIKE ?
+                LIMIT 5
+            """, ("%"+search_input+"%",))
+        elif search_category == "age":
+            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE age_rating LIKE ? LIMIT 5", ("%"+search_input+"%",))
+        elif search_category == "genre":
+            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE genre LIKE ? LIMIT 5", ("%"+search_input+"%",))
+
+        results = c.fetchall()
+        conn.close()
+
+        data = [{"song_name": row[0], "artist": row[1], "age": row[2], "genre": row[3]} for row in results]
+
+        return render_template("search.html", data=data)
+
+    return render_template("search.html")
 
 @app.route("/user")
 def user():
