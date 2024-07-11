@@ -15,7 +15,15 @@
             padding: 10px;
             border-radius: 5px;
         }
+        .hidden {
+            display: none;
+        }
     </style>
+    <script>
+        function showAddSongForm(albumId) {
+            document.getElementById('add-song-form-' + albumId).classList.remove('hidden');
+        }
+    </script>
 </head>
 <body>
     <h1>Artist Page</h1>
@@ -55,7 +63,7 @@
             <ul>
                 {% for song in songs %}
                 <li>
-                    {{ song[1] }} - Album ID: {{ song[2] }} - {{ song[3] }} - {{ song[4] }} - {{ song[5] }}
+                    {{ song[1] }} - {{ song[3] }} - {{ song[4] }} - {{ song[5] }} - Album ID: {{ song[2] }} 
                     <form action="{{ url_for('artist_page') }}" method="POST" style="display:inline;">
                         <input type="hidden" name="action" value="delete_song">
                         <input type="hidden" name="song_id" value="{{ song[0] }}">
@@ -86,8 +94,6 @@
                 <input type="text" id="genre" name="genre" required><br>
                 <label for="duration">Duration:</label>
                 <input type="number" id="duration" name="duration" required><br>
-                <label for="album_id">Album ID:</label>
-                <input type="number" id="album_id" name="album_id"><br>
                 <button type="submit">Add Song</button>
             </form>
         </div>
@@ -97,12 +103,23 @@
             <ul>
                 {% for album in albums %}
                 <li>
-                    {{ album[1] }} - {{ album[2] }} - {{ album[3] }}
+                    <b>{{ album[1] }}</b> - {{ album[2] }} - {{ album[3] }}<br>
+                    Songs: {{ album[4] | safe }}
                     <form action="{{ url_for('artist_page') }}" method="POST" style="display:inline;">
                         <input type="hidden" name="action" value="delete_album">
                         <input type="hidden" name="album_id" value="{{ album[0] }}">
                         <button type="submit">Delete</button>
                     </form>
+                    <button onclick="showAddSongForm({{ album[0] }})">Add Songs</button>
+                    <div id="add-song-form-{{ album[0] }}" class="hidden">
+                        <form method="post" action="{{ url_for('artist_page') }}">
+                            <input type="hidden" name="action" value="add_songs_to_album">
+                            <input type="hidden" name="album_id" value="{{ album[0] }}">
+                            <label for="song_id">Song ID to add:</label>
+                            <input type="text" name="song_id" required>
+                            <button type="submit">Add Song</button>
+                        </form>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>

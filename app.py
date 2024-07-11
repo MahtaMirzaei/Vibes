@@ -390,14 +390,6 @@ def charge():
                     (transaction_id_user, user_id, bank_id, amount, date),
                 )
 
-                cursor.execute(
-                    """
-                    INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
-                    VALUES (?, ?, ?, ?, ?)
-                    """,
-                    (transaction_id_bank, bank_id, user_id, -amount, date),
-                )
-
                 connect.commit()
 
                 session["balance"] += amount
@@ -678,7 +670,26 @@ def artist_page():
                 except Exception as e:
                     logging.error(f"Error toggling song limit status: {e}")
                     flash("An error occurred while toggling the song limit status.")
+ 
 
+            elif action == "add_songs_to_album":
+                album_id = request.form["album_id"]
+                song_id = request.form["song_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "UPDATE songs SET album_id = ? WHERE song_id = ? AND user_id = ?",
+                            (album_id, song_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Song successfully added to the album.")
+                except Exception as e:
+                    logging.error(f"Error adding song to album: {e}")
+                    flash("An error occurred while adding the song to the album.")
+
+                    
             elif action == "delete_album":
                 album_id = request.form["album_id"]
 
