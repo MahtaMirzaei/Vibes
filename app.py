@@ -31,6 +31,37 @@ with sqlite3.connect("database.db") as connect:
         )
     """
     )
+
+    connect.execute(
+        """
+        CREATE TABLE IF NOT EXISTS ALBUM (
+            album_id TEXT PRIMARY KEY,
+            name TEXT,
+            released_date DATE,
+            genre TEXT
+        )
+    """
+    )
+
+    connect.execute(
+        """
+        CREATE TABLE IF NOT EXISTS SONGS (
+            song_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            album_id TEXT,
+            name TEXT,
+            file TEXT,
+            lyrics TEXT,
+            released_date DATE,
+            age_rating INTEGER CHECK(age_rating >= 9 AND age_rating <= 120),
+            genre TEXT,
+            duration INTEGER,
+            is_limited BOOLEAN DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES USERS (user_id),
+            FOREIGN KEY (album_id) REFERENCES ALBUM (album_id)
+        )
+    """
+    )
     connect.execute(
         """
         CREATE TABLE IF NOT EXISTS TRANSACTIONS (
@@ -38,7 +69,7 @@ with sqlite3.connect("database.db") as connect:
             user_id TEXT,
             recipient_id TEXT,
             amount INTEGER,
-            date TEXT,
+            date DATE,
             FOREIGN KEY (user_id) REFERENCES USERS (user_id),
             FOREIGN KEY (recipient_id) REFERENCES USERS (user_id)
         )
@@ -49,7 +80,7 @@ with sqlite3.connect("database.db") as connect:
                 CREATE TABLE IF NOT EXISTS concerts (
                     concert_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
-                    date TEXT NOT NULL,
+                    date DATE NOT NULL,
                     price DECIMAL(10, 2) NOT NULL,
                     ticket_number INTEGER NOT NULL,
                     user_id TEXT NOT NULL,
@@ -63,6 +94,28 @@ with sqlite3.connect("database.db") as connect:
         VALUES (1, 'admin', 'a@mail.com' , 'Isfahan', 'Iran', 1212, 100, 123123, 99999999999, 1, 1)
     """
     )
+
+    connect.execute(
+        """
+        INSERT OR IGNORE  INTO USERS (user_id, name, email, city, country, phone, age, password, balance, is_artist, is_premium)
+        VALUES (2, 'singer', 'a@mail.com' , 'Isfahan', 'Iran', 1212, 100, 123123, 99999999999, 1, 1)
+    """
+    )
+
+    connect.execute(
+        """
+        INSERT OR IGNORE  INTO SONGS (album_id, name, released_date, genre)
+        VALUES (3, 'Zootopia', 2016-08-12 , 'happy')
+    """
+    )
+    
+    connect.execute(
+        """
+        INSERT OR IGNORE  INTO SONGS (song_id, user_id, album_id, name, file, lyrics, released_date, age_rating, genre, duration, is_limited)
+        VALUES (1, 2, 3 , 'Try Everything', 'Iran', '1212', 2016-08-12, 20, 'happy', 1, 0)
+    """
+    )
+
     connect.execute(
         """
         INSERT OR IGNORE  INTO USERS (user_id, name, email, city, country, phone, age, password, balance, is_artist, is_premium)
@@ -266,6 +319,39 @@ def user():
         return render_template("user.html", user_id=user_id, name=name, balance=balance, is_premium=is_premium, is_artist=is_artist)
     else:
         return redirect(url_for("login"))
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if request.method == "POST":
+        search_category = request.form["search_category"]
+        search_input = request.form["search_input"]
+
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+
+        if search_category == "song_name":
+            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+        elif search_category == "artist":
+            c.execute("""
+                SELECT s.name, u.name, s.age_rating, s.genre
+                FROM songs s
+                JOIN users u ON s.user_id = u.user_id
+                WHERE u.name LIKE ?
+                LIMIT 5
+            """, ("%"+search_input+"%",))
+        elif search_category == "age":
+            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE age_rating LIKE ? LIMIT 5", ("%"+search_input+"%",))
+        elif search_category == "genre":
+            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE genre LIKE ? LIMIT 5", ("%"+search_input+"%",))
+
+        results = c.fetchall()
+        conn.close()
+
+        data = [{"song_name": row[0], "artist": row[1], "age": row[2], "genre": row[3]} for row in results]
+
+        return render_template("search.html", data=data)
+
+    return render_template("search.html")
 
 @app.route("/artist_page", methods=["GET", "POST"])
 def artist_page():
