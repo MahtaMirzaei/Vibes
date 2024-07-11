@@ -138,8 +138,21 @@
         <input type="text" name="search_input" id="search_input" placeholder="Enter search term" />
         <button type="submit">Search</button>
     </form>
-    
+    <h2>Buy Concert Ticket</h2>
+    <form method="post" action="{{ url_for('buy_ticket') }}">
+        <label for="concert_id">Concert ID:</label>
+        <input type="number" name="concert_id" required />
+        <button type="submit">Buy Ticket</button>
+    </form>
+    <div>
+      <h2>Your Tickets</h2>
+      <ul>
+          {% for ticket in tickets %}
+          <li>Concert: {{ ticket[1] }} - Singer: {{ ticket[2] }} - Date: {{ ticket[3] }} - Ticket Price: ${{ ticket[4] }}</li>
+          {% endfor %}
+      </ul>
     </div>
+    
     <script>
       function checkPremium() {
         document.getElementById("premiumForm").style.display = "block";

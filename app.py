@@ -314,6 +314,24 @@ def user():
         is_premium = session["is_premium"]
         is_artist = session["is_artist"]
 
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute(
+                    """
+                    SELECT T.ticket_id, C.name, U.name AS singer_name, C.date, T.ticket_price 
+                    FROM TICKETS T
+                    JOIN concerts C ON T.concert_id = C.concert_id
+                    JOIN USERS U ON C.user_id = U.user_id
+                    WHERE T.user_id = ?
+                    """,
+                    (user_id,)
+                )
+                tickets = cursor.fetchall()
+        except Exception as e:
+            logging.error(f"Error fetching tickets: {e}")
+            tickets = []
+
         return render_template(
             "user.html",
             user_id=user_id,
@@ -321,9 +339,11 @@ def user():
             balance=balance,
             is_premium=is_premium,
             is_artist=is_artist,
+            tickets=tickets
         )
     else:
         return redirect(url_for("login"))
+
 
 
 @app.route("/charge", methods=["POST"])
@@ -672,6 +692,124 @@ def artist_page():
     else:
         flash("Access denied: You are not an artist.")
         return redirect(url_for("user"))
+
+
+
+@app.route("/buy_ticket", methods=["POST"])
+def buy_ticket():
+    if "user_id" in session:
+        user_id = session["user_id"]
+        concert_id = request.form["concert_id"]
+        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+
+                # Get the concert details
+                cursor.execute(
+                    "SELECT name, price, ticket_number, user_id, date FROM concerts WHERE concert_id = ?",
+                    (concert_id,)
+                )
+                concert = cursor.fetchone()
+                if not concert:
+                    flash("Concert not found.")
+                    return redirect(url_for("user"))
+
+                name, price, ticket_number, singer_id, concert_date = concert
+
+                # Check if user has enough balance
+                cursor.execute(
+                    "SELECT balance FROM USERS WHERE user_id = ?",
+                    (user_id,)
+                )
+                balance = cursor.fetchone()[0]
+                if balance < price:
+                    flash("Insufficient balance.")
+                    return redirect(url_for("user"))
+
+                # Check the number of tickets already sold
+                cursor.execute(
+                    "SELECT COUNT(*) FROM TICKETS WHERE concert_id = ?",
+                    (concert_id,)
+                )
+                sold_tickets = cursor.fetchone()[0]
+                if sold_tickets >= ticket_number:
+                    flash("No more tickets available for this concert.")
+                    return redirect(url_for("user"))
+
+                # Deduct the ticket price from user's balance
+                new_balance = balance - price
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_balance, user_id)
+                )
+
+                # Add the ticket price to the singer's balance
+                cursor.execute(
+                    "SELECT balance FROM USERS WHERE user_id = ?",
+                    (singer_id,)
+                )
+                singer_balance = cursor.fetchone()[0]
+                new_singer_balance = singer_balance + price
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_singer_balance, singer_id)
+                )
+
+                # Create a transaction record for the user to singer transaction
+                cursor.execute(
+                    "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                    (transaction_id, user_id, singer_id, price, date)
+                )
+
+                # Add 10% of the ticket price to the admin's balance (assuming admin has user_id = 1)
+                admin_id = 1
+                admin_share = price * 0.1
+                cursor.execute(
+                    "SELECT balance FROM USERS WHERE user_id = ?",
+                    (admin_id,)
+                )
+                admin_balance = cursor.fetchone()[0]
+                new_admin_balance = admin_balance + admin_share
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_admin_balance, admin_id)
+                )
+
+                # Deduct the 10% from singer's balance
+                new_singer_balance -= admin_share
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_singer_balance, singer_id)
+                )
+
+                transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+                # Create a transaction record for the singer to admin transaction
+                cursor.execute(
+                    "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                    (transaction_id, singer_id, admin_id, admin_share, date)
+                )
+
+                # Generate the ticket
+                cursor.execute(
+                    "INSERT INTO TICKETS (concert_id, user_id, ticket_price) VALUES (?, ?, ?)",
+                    (concert_id, user_id, price)
+                )
+
+                # Commit the transaction
+                connect.commit()
+                session["balance"] = new_balance
+                flash("Ticket successfully purchased.")
+                return redirect(url_for("user"))
+        except Exception as e:
+            logging.error(f"Error purchasing ticket: {e}")
+            flash("An error occurred while purchasing the ticket.")
+            return redirect(url_for("user"))
+    else:
+        return redirect(url_for("login"))
+
 
 
 if __name__ == "__main__":
