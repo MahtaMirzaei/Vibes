@@ -76,15 +76,32 @@ with sqlite3.connect("database.db") as connect:
                 name TEXT,
                 release_date DATE,
                 genre TEXT,
-                user_id TEXT,
+                user_id TEXT ,
                 FOREIGN KEY (user_id) REFERENCES USERS (user_id)
             )
             """
     )
+
+    connect.execute(
+        """
+            CREATE TABLE IF NOT EXISTS song_likes (
+            id SERIAL PRIMARY KEY,
+            user_id TEXT,
+            song_id INTEGER NOT NULL,
+            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (song_id) REFERENCES songs(song_id)
+);
+            """
+    )
+
+
+
     connect.execute(
         """
             CREATE TABLE IF NOT EXISTS SONGS (
                 song_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                album_id TEXT,
                 name TEXT,
                 file TEXT,
                 lyrics TEXT,
@@ -271,6 +288,8 @@ def login():
         return render_template("login.html")
 
 
+# like handling
+    
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
@@ -278,32 +297,52 @@ def search():
         search_category = request.form["search_category"]
         search_input = request.form["search_input"]
 
-        conn = sqlite3.connect("database.db")
-        c = conn.cursor()
+        try:
+            conn = sqlite3.connect("database.db")
+            c = conn.cursor()
 
-        if search_category == "song_name":
-            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE name LIKE ? LIMIT 5", ("%"+search_input+"%",))
-        elif search_category == "artist":
-            c.execute("""
-                SELECT s.name, u.name, s.age_rating, s.genre
-                FROM songs s
-                JOIN users u ON s.user_id = u.user_id
-                WHERE u.name LIKE ?
-                LIMIT 5
-            """, ("%"+search_input+"%",))
-        elif search_category == "age":
-            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE age_rating LIKE ? LIMIT 5", ("%"+search_input+"%",))
-        elif search_category == "genre":
-            c.execute("SELECT name, user_id, age_rating, genre FROM songs WHERE genre LIKE ? LIMIT 5", ("%"+search_input+"%",))
+            if search_category == "song_name":
+                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE s.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "songs"
+                columns = ["song_name", "artist", "age", "genre"]
+            elif search_category == "artist":
+                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE u.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "songs"
+                columns = ["song_name", "artist", "age", "genre"]
+            elif search_category == "age":
+                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE s.age_rating LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "songs"
+                columns = ["song_name", "artist", "age", "genre"]
+            elif search_category == "genre":
+                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE s.genre LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "songs"
+                columns = ["song_name", "artist", "age", "genre"]
+            elif search_category == "album_name":
+                c.execute("SELECT a.name, u.name, a.genre, a.release_date FROM album a JOIN users u ON a.user_id = u.user_id WHERE a.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "albums"
+                columns = ["album_name", "album_artist", "genre", "release_date"]
+            elif search_category == "album_artist":
+                c.execute("SELECT a.name, u.name, a.genre, a.release_date FROM album a JOIN users u ON a.user_id = u.user_id WHERE u.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "albums"
+                columns = ["album_name", "album_artist", "genre", "release_date"]
 
-        results = c.fetchall()
-        conn.close()
+            results = c.fetchall()
+            conn.close()
 
-        data = [{"song_name": row[0], "artist": row[1], "age": row[2], "genre": row[3]} for row in results]
+            data = [dict(zip(columns, row)) for row in results]
 
-        return render_template("search.html", data=data)
+            return render_template("search.html", data=data, table_name=table_name)
+
+        except sqlite3.Error as e:
+            # Log the error
+            logging.error(f"An error occurred while processing the search request: {e}")
+            # Display a user-friendly error message
+            return "An error occurred while processing your search request. Please try again later."
 
     return render_template("search.html")
+
+
+
 
 @app.route("/user")
 def user():

@@ -43,26 +43,58 @@
     <title>User Page</title>
   </head>
   <body>
+    <h2>Search</h2>
+    <form action="{{ url_for('search') }}" method="post">
+      <label for="search_category">Search by:</label>
+      <select name="search_category" id="search_category">
+        <option value="">Select a category</option>
+        <option value="song_name">Song's Name</option>
+        <option value="artist">Song's Artist</option>
+        <option value="age">Age</option>
+        <option value="genre">Genre</option>
+        <option value="album_name">Album's Name</option>
+        <option value="album_artist">Album's Artist</option>
+      </select>
+
+      <input
+        type="text"
+        name="search_input"
+        id="search_input"
+        placeholder="Enter search term"
+      />
+      <button type="submit">Search</button>
+    </form>
+
     <div class="div-header">
       <h2>Search Results</h2>
       <table>
         <thead>
           <tr>
+            {% if table_name == "songs" %}
             <th>Song Name</th>
             <th>Artist</th>
             <th>Age</th>
             <th>Genre</th>
+            {% elif table_name == "albums" %}
+            <th>Album Name</th>
+            <th>Artist</th>
+            <th>Genre</th>
+            <th>Release Date</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
-          {% for item in data %}
+          {% if data %} {% for item in data %}
           <tr>
-            <td>{{ item.song_name }}</td>
-            <td>{{ item.artist }}</td>
-            <td>{{ item.age }}</td>
-            <td>{{ item.genre }}</td>
+            {% for value in item.values() %}
+            <td>{{ value }}</td>
+            {% endfor %}
           </tr>
-          {% endfor %}
+          {% endfor %} {% else %}
+          <tr>
+            <td colspan="4">No results found.</td>
+          </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>

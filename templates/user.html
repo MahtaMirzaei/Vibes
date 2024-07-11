@@ -126,18 +126,7 @@
         </form>
       </div>
 
-      <h2>Search</h2>
-      <form action="{{ url_for('search') }}" method="post">
-        <label for="search_category">Search by:</label>
-        <select name="search_category" id="search_category">
-            <option value="song_name">Song Name</option>
-            <option value="artist">Artist</option>
-            <option value="age">Age</option>
-            <option value="genre">Genre</option>
-        </select>
-        <input type="text" name="search_input" id="search_input" placeholder="Enter search term" />
-        <button type="submit">Search</button>
-    </form>
+      <a href="{{ url_for('search') }}">Go to Search Page</a>
     
     </div>
     <script>
