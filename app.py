@@ -1137,13 +1137,12 @@ def follows():
         """, (user_id,))
         following = cursor.fetchall()
 
-        # Fetch friends' names
         cursor.execute("""
-            SELECT u.name FROM USERS u
-            JOIN FRIENDS f ON u.user_id = f.friend_id
-            WHERE f.user_id = ?
-        """, (user_id,))
-        friends = [row[0] for row in cursor.fetchall()]
+        SELECT u.user_id, u.name FROM USERS u
+        JOIN FRIENDS f ON u.user_id = f.friend_id
+        WHERE f.user_id = ?
+    """, (user_id,))
+        friends = cursor.fetchall()
 
         # Fetch all pending friendship requests
         cursor.execute("""
@@ -1291,6 +1290,67 @@ def decline_friendship_request():
     return redirect(url_for("follows"))
 
 
+@app.route('/chat', methods=['GET', 'POST'])
+def chat():
+    current_user_id = session.get('user_id')
+    friend_id = request.args.get('friend_id')
+
+    if not current_user_id or not friend_id:
+        return redirect(url_for('follows'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        text = request.form['text']
+        date = datetime.now()
+        cursor.execute("""
+            INSERT INTO messages (sender_id, receiver_id, text, date)
+            VALUES (?, ?, ?, ?)
+        """, (current_user_id, friend_id, text, date))
+        conn.commit()
+
+    cursor.execute("SELECT name FROM users WHERE user_id = ?", (friend_id,))
+    friend_name = cursor.fetchone()['name']
+
+    cursor.execute("""
+        SELECT m.text, m.date, u.name AS sender_name
+        FROM messages m
+        JOIN users u ON m.sender_id = u.user_id
+        WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
+        ORDER BY m.date ASC
+    """, (current_user_id, friend_id, friend_id, current_user_id))
+    messages = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('chat.html', friend_name=friend_name, friend_id=friend_id, messages=messages)
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    current_user_id = session.get('user_id')
+    receiver_id = request.form.get('receiver_id')
+    text = request.form.get('text')
+
+    if not current_user_id or not receiver_id or not text:
+        return redirect(url_for('chat', friend_id=receiver_id))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        cursor.execute("""
+            INSERT INTO messages (sender_id, receiver_id, text, date)
+            VALUES (?, ?, ?, ?)
+        """, (current_user_id, receiver_id, text, date))
+        conn.commit()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        conn.close()
+
+    return redirect(url_for('chat', friend_id=receiver_id))
 
 if __name__ == "__main__":
     app.run(debug=True)

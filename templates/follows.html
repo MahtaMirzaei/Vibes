@@ -65,19 +65,25 @@
   <body>
     <div class="container">
       <h1>Vibes</h1>
-
       <h2>Friends</h2>
       <table class="table table-dark">
         {% if friends %}
         <thead>
           <tr>
             <th>Name</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {% for friend in friends %}
           <tr>
-            <td>{{ friend }}</td>
+            <td>{{ friend[1] }}</td>
+            <td>
+              <form action="{{ url_for('chat') }}" method="get">
+                <input type="hidden" name="friend_id" value="{{ friend[0] }}">
+                <button type="submit" class="btn btn-primary btn-custom">Chat</button>
+              </form>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -85,6 +91,7 @@
         <p>You have no friends yet.</p>
         {% endif %}
       </table>
+      
 
       <h2>Followers</h2>
       <table class="table table-dark">
