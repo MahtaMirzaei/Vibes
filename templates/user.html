@@ -118,11 +118,6 @@
             <input type="number" name="concert_id" required class="form-control mb-2" />
             <button type="submit" class="btn btn-custom">Buy Ticket</button>
         </form>
-        <form method="post" action="{{ url_for('send_friendship_request') }}" class="mb-2">
-            <label for="friend_id">Friend ID:</label>
-            <input type="text" name="friend_id" required class="form-control mb-2" />
-            <button type="submit" class="btn btn-custom">Send Friendship Request</button>
-        </form>
         {% endif %}
         <form action="{{ url_for('logout') }}" method="post" class="mb-2">
             <button type="submit" class="btn btn-custom">Logout</button>

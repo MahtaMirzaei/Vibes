@@ -433,7 +433,17 @@ def user():
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-
+            cursor.execute(
+                """
+                SELECT T.ticket_id, C.name, U.name AS singer_name, C.date, T.ticket_price 
+                FROM TICKETS T
+                JOIN concerts C ON T.concert_id = C.concert_id
+                JOIN USERS U ON C.user_id = U.user_id
+                WHERE T.user_id = ?
+                """,
+                (user_id,)
+            )
+            tickets = cursor.fetchall()
             cursor.execute(
                 """
                 SELECT FR.sender_id, U.email AS sender_email
@@ -457,6 +467,7 @@ def user():
             balance=balance,
             is_premium=is_premium,
             is_artist=is_artist,
+            tickets=tickets,
             friendship_requests=friendship_requests
         )
     else:
@@ -997,6 +1008,7 @@ def buy_ticket():
     else:
         return redirect(url_for("login"))
 
+
 @app.route("/create_playlist", methods=["GET", "POST"])
 def create_playlist():
     if request.method == "POST":
@@ -1084,24 +1096,29 @@ def add_song_to_playlist():
 
 @app.route('/follows', methods=['GET', 'POST'])
 def follows():
-    user_id = session['user_id']
-    
-    with sqlite3.connect('database.db') as conn:
-        cursor = conn.cursor()
+    user_id = session.get('user_id')
 
-        # Handle follow/unfollow actions
+    if not user_id:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    try:
+        # Handle follow/unfollow/request actions
         if request.method == 'POST':
             if 'user_id_to_follow' in request.form:
                 user_id_to_follow = request.form['user_id_to_follow']
-                # Check if user_id_to_follow contains digits
                 if user_id != user_id_to_follow:
-                    cursor.execute("SELECT COUNT(*) FROM FOLLOWS WHERE user_id1 = ? AND user_id2 = ?", (user_id, user_id_to_follow))
-                    if cursor.fetchone()[0] == 0:
-                        cursor.execute("INSERT INTO FOLLOWS (user_id1, user_id2) VALUES (?, ?)", (user_id, user_id_to_follow))
-                        conn.commit()
+                    cursor.execute("INSERT INTO FOLLOWS (user_id1, user_id2) VALUES (?, ?)", (user_id, user_id_to_follow))
+                    conn.commit()
             elif 'user_id_to_unfollow' in request.form:
                 user_id_to_unfollow = request.form['user_id_to_unfollow']
                 cursor.execute("DELETE FROM FOLLOWS WHERE user_id1 = ? AND user_id2 = ?", (user_id, user_id_to_unfollow))
+                conn.commit()
+            elif 'friend_id' in request.form:
+                friend_id = request.form['friend_id']
+                cursor.execute("INSERT INTO FRIENDS (user_id, friend_id) VALUES (?, ?)", (user_id, friend_id))
                 conn.commit()
 
         # Fetch followers
@@ -1120,18 +1137,44 @@ def follows():
         """, (user_id,))
         following = cursor.fetchall()
 
-        # Fetch all premium users
+        # Fetch friends' names
+        cursor.execute("""
+            SELECT u.name FROM USERS u
+            JOIN FRIENDS f ON u.user_id = f.friend_id
+            WHERE f.user_id = ?
+        """, (user_id,))
+        friends = [row[0] for row in cursor.fetchall()]
+
+        # Fetch all pending friendship requests
+        cursor.execute("""
+            SELECT u.user_id, u.name FROM USERS u
+            JOIN friendship_requests f ON u.user_id = f.sender_id
+            WHERE f.receiver_id = ?
+        """, (user_id,))
+        pending_requests = cursor.fetchall()
+
+        # Fetch all premium users with action buttons
         cursor.execute("""
             SELECT user_id, name FROM USERS
             WHERE user_id != ? AND is_premium = 1
         """, (user_id,))
         all_users = cursor.fetchall()
 
-        following_set = {follow[0] for follow in following}
+        # Check if premium users are already friends
+        cursor.execute("""
+            SELECT u.user_id FROM USERS u
+            JOIN FRIENDS f ON u.user_id = f.friend_id
+            WHERE f.user_id = ?
+        """, (user_id,))
+        friends_set = {row[0] for row in cursor.fetchall()}
 
-    return render_template('follows.html', followers=followers, following=following, all_users=all_users, following_set=following_set)
+    finally:
+        conn.close()
 
+    following_set = {follow[0] for follow in following}
 
+    return render_template('follows.html', followers=followers, following=following, all_users=all_users,
+                           following_set=following_set, friends=friends, pending_requests=pending_requests, friends_set=friends_set)
 
 
 @app.route('/send_friendship_request', methods=['POST'])
@@ -1144,7 +1187,7 @@ def send_friendship_request():
 
     if sender_id == receiver_id:
         flash("You cannot send a request to yourself.")
-        return redirect(url_for("user"))
+        return redirect(url_for("follows"))
 
     try:
         conn = get_db_connection()
@@ -1155,11 +1198,11 @@ def send_friendship_request():
 
         if not receiver:
             flash("Invalid user ID.")
-            return redirect(url_for("user"))
+            return redirect(url_for("follows"))
 
         if not session["is_premium"] or not receiver["is_premium"]:
             flash("Both sender and receiver must be premium users.")
-            return redirect(url_for("user"))
+            return redirect(url_for("follows"))
 
         cursor.execute(
             "SELECT * FROM friendship_requests WHERE sender_id = ? AND receiver_id = ?",
@@ -1167,7 +1210,7 @@ def send_friendship_request():
         )
         if cursor.fetchone():
             flash("Friendship request already sent.")
-            return redirect(url_for("user"))
+            return redirect(url_for("follows"))
 
         cursor.execute(
             "SELECT * FROM friends WHERE user_id = ? AND friend_id = ?",
@@ -1175,7 +1218,7 @@ def send_friendship_request():
         )
         if cursor.fetchone():
             flash("You are already friends with this user.")
-            return redirect(url_for("user"))
+            return redirect(url_for("follows"))
 
         cursor.execute(
             "INSERT INTO friendship_requests (sender_id, receiver_id) VALUES (?, ?)",
@@ -1188,7 +1231,8 @@ def send_friendship_request():
         logging.error(f"Error sending friendship request: {e}")
         flash("An error occurred.")
 
-    return redirect(url_for("user"))
+    return redirect(url_for("follows"))
+
 
 @app.route('/accept_friendship_request', methods=['POST'])
 def accept_friendship_request():
@@ -1220,7 +1264,7 @@ def accept_friendship_request():
         logging.error(f"Error accepting friendship request: {e}")
         flash("An error occurred.")
 
-    return redirect(url_for("user"))
+    return redirect(url_for("follows"))
 
 @app.route('/decline_friendship_request', methods=['POST'])
 def decline_friendship_request():
@@ -1244,7 +1288,8 @@ def decline_friendship_request():
         logging.error(f"Error declining friendship request: {e}")
         flash("An error occurred.")
 
-    return redirect(url_for("user"))
+    return redirect(url_for("follows"))
+
 
 
 if __name__ == "__main__":
