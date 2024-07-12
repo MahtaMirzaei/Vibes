@@ -463,72 +463,76 @@ def user():
         is_artist = session["is_artist"]
 
         try:
-            with sqlite3.connect("database.db") as connect:
-                cursor = connect.cursor()
-                cursor.execute(
-                    """
-                    SELECT T.ticket_id, C.name, U.name AS singer_name, C.date, T.ticket_price 
-                    FROM TICKETS T
-                    JOIN concerts C ON T.concert_id = C.concert_id
-                    JOIN USERS U ON C.user_id = U.user_id
-                    WHERE T.user_id = ?
-                    """,
-                    (user_id,)
-                )
-                tickets = cursor.fetchall()
+            connect = get_db_connection()
+            cursor = connect.cursor()
+            
+            # Fetching unexpired tickets only
+            cursor.execute(
+                """
+                SELECT T.ticket_id, C.name, U.name AS singer_name, C.date, T.ticket_price 
+                FROM TICKETS T
+                JOIN concerts C ON T.concert_id = C.concert_id
+                JOIN USERS U ON C.user_id = U.user_id
+                WHERE T.user_id = ?
+                AND C.date >= DATE('now')
+                """,
+                (user_id,)
+            )
+            tickets = cursor.fetchall()
         except Exception as e:
             logging.error(f"Error fetching tickets: {e}")
             tickets = []
             friendship_requests = []
 
-
         try:
-                # دریافت پیشنهادات آهنگ
-                cursor.execute(
-                    """
-                    SELECT s.name, u.name AS artist_name
-                    FROM songs s
-                    JOIN users u ON s.user_id = u.user_id
-                    WHERE s.genre IN (
-                        SELECT DISTINCT genre
-                        FROM songs
-                        WHERE song_id IN (
-                            SELECT song_id
-                            FROM song_likes
-                            WHERE user_id = ?
-                        )    
-                    ) AND s.is_limited = 0
-                    GROUP BY s.song_id
-                    ORDER BY COUNT(s.song_id) DESC
-                    LIMIT 10;
-                    """,
-                    (user_id,)
-                )
-                suggested_songs = cursor.fetchall()
+            # Fetching suggested songs
+            cursor.execute(
+                """
+                SELECT s.name, u.name AS artist_name
+                FROM songs s
+                JOIN users u ON s.user_id = u.user_id
+                WHERE s.genre IN (
+                    SELECT DISTINCT genre
+                    FROM songs
+                    WHERE song_id IN (
+                        SELECT song_id
+                        FROM song_likes
+                        WHERE user_id = ?
+                    )    
+                ) AND s.is_limited = 0
+                GROUP BY s.song_id
+                ORDER BY COUNT(s.song_id) DESC
+                LIMIT 10;
+                """,
+                (user_id,)
+            )
+            suggested_songs = cursor.fetchall()
 
-                # دریافت پیشنهادات آلبوم
-                cursor.execute(
-                    """
-                    SELECT a.name, u.name AS artist_name
-                    FROM album a
-                    JOIN users u ON a.user_id = u.user_id
-                    WHERE a.genre IN (
-                        SELECT DISTINCT genre
-                        FROM album
-                        WHERE album_id IN (
-                            SELECT album_id
-                            FROM album_likes
-                            WHERE user_id = ?
-                        )
+            # Fetching suggested albums
+            cursor.execute(
+                """
+                SELECT a.name, u.name AS artist_name
+                FROM album a
+                JOIN users u ON a.user_id = u.user_id
+                WHERE a.genre IN (
+                    SELECT DISTINCT genre
+                    FROM album
+                    WHERE album_id IN (
+                        SELECT album_id
+                        FROM album_likes
+                        WHERE user_id = ?
                     )
-                    GROUP BY a.album_id
-                    ORDER BY COUNT(a.album_id) DESC
-                    LIMIT 10;
-                    """,
-                    (user_id,)
                 )
-                suggested_albums = cursor.fetchall()
-                cursor.execute(
+                GROUP BY a.album_id
+                ORDER BY COUNT(a.album_id) DESC
+                LIMIT 10;
+                """,
+                (user_id,)
+            )
+            suggested_albums = cursor.fetchall()
+
+            # Fetching friendship requests
+            cursor.execute(
                 """
                 SELECT FR.sender_id, U.email AS sender_email
                 FROM friendship_requests FR
@@ -537,7 +541,7 @@ def user():
                 """,
                 (user_id,)
             )
-                friendship_requests = cursor.fetchall()
+            friendship_requests = cursor.fetchall()
         except Exception as e:
             logging.error(f"Error fetching data: {e}")
             suggested_songs = []
@@ -557,6 +561,7 @@ def user():
         )
     else:
         return redirect(url_for("login"))
+
     
 @app.route("/charge", methods=["POST"])
 def charge():
