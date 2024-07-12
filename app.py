@@ -1436,6 +1436,5 @@ def send_message():
         conn.close()
 
     return redirect(url_for('chat', friend_id=receiver_id))
-
 if __name__ == "__main__":
     app.run(debug=True)
