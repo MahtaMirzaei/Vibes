@@ -108,6 +108,7 @@ with sqlite3.connect("database.db") as connect:
                 )
                 """
     )
+    
     connect.execute(
         """
             CREATE TABLE IF NOT EXISTS ALBUM (
@@ -121,18 +122,45 @@ with sqlite3.connect("database.db") as connect:
             """
     )
 
+    connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-1', '2017-05-14', 'happy', 2) ")
+    connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-2', '2017-05-14', 'happy', 2) ")
+    connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-3', '2017-05-14', 'happy', 2) ")
+    connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-4', '2017-05-14', 'happy', 2) ")
+
+
+
     connect.execute(
         """
             CREATE TABLE IF NOT EXISTS song_likes (
-            id SERIAL PRIMARY KEY,
+            song_likes_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
             song_id INTEGER NOT NULL,
-            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(user_id),
             FOREIGN KEY (song_id) REFERENCES songs(song_id)
 );
             """
     )
+
+
+    connect.execute(
+        """
+            CREATE TABLE IF NOT EXISTS album_likes (
+            album_likes_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            album_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (album_id) REFERENCES album(album_id)
+);
+            """
+    )
+
+    
+    connect.execute(" INSERT OR IGNORE INTO album_likes (user_id, album_id) VALUES (1, 4) ")
+    connect.execute(" INSERT OR IGNORE INTO album_likes (user_id, album_id) VALUES (1, 3) ")
+    connect.execute(" INSERT OR IGNORE INTO song_likes (user_id, song_id) VALUES (1, 8) ")
+    connect.execute(" INSERT OR IGNORE INTO song_likes (user_id, song_id) VALUES (1, 3) ")
+
+    
 
     connect.execute(
         """CREATE TABLE IF NOT EXISTS playlists (
@@ -158,7 +186,6 @@ with sqlite3.connect("database.db") as connect:
         """
             CREATE TABLE IF NOT EXISTS SONGS (
                 song_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                album_id TEXT,
                 name TEXT,
                 file TEXT,
                 lyrics TEXT,
@@ -174,6 +201,14 @@ with sqlite3.connect("database.db") as connect:
             )
             """
     )
+
+    
+
+    connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-5', '0', '0', '2017-05-14', 12, 'scary', 2, 0, 3, 1) ")
+    connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-6', '0', '0', '2017-05-14', 13, 'scary', 2, 0, 3, 1) ")
+    connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-7', '0', '0', '2017-05-14', 14, 'scary', 2, 0, 3, 1) ")
+    connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-8', '0', '0', '2017-05-14', 15, 'scary', 2, 1, 3, 1) ")
+
     connect.execute(
         """
         INSERT OR IGNORE  INTO USERS (user_id, name, email, city, country, phone, age, password, balance, is_artist, is_premium)
@@ -448,6 +483,58 @@ def user():
             logging.error(f"Error fetching tickets: {e}")
             tickets = []
 
+        try:
+                # دریافت پیشنهادات آهنگ
+                cursor.execute(
+                    """
+                    SELECT s.name, u.name AS artist_name
+                    FROM songs s
+                    JOIN users u ON s.user_id = u.user_id
+                    WHERE s.genre IN (
+                        SELECT DISTINCT genre
+                        FROM songs
+                        WHERE song_id IN (
+                            SELECT song_id
+                            FROM song_likes
+                            WHERE user_id = ?
+                        )    
+                    ) AND s.is_limited = 0
+                    GROUP BY s.song_id
+                    ORDER BY COUNT(s.song_id) DESC
+                    LIMIT 10;
+                    """,
+                    (user_id,)
+                )
+                suggested_songs = cursor.fetchall()
+
+                # دریافت پیشنهادات آلبوم
+                cursor.execute(
+                    """
+                    SELECT a.name, u.name AS artist_name
+                    FROM album a
+                    JOIN users u ON a.user_id = u.user_id
+                    WHERE a.genre IN (
+                        SELECT DISTINCT genre
+                        FROM album
+                        WHERE album_id IN (
+                            SELECT album_id
+                            FROM album_likes
+                            WHERE user_id = ?
+                        )
+                    )
+                    GROUP BY a.album_id
+                    ORDER BY COUNT(a.album_id) DESC
+                    LIMIT 10;
+                    """,
+                    (user_id,)
+                )
+                suggested_albums = cursor.fetchall()
+
+        except Exception as e:
+            logging.error(f"Error fetching data: {e}")
+            suggested_songs = []
+            suggested_albums = []
+
         return render_template(
             "user.html",
             user_id=user_id,
@@ -455,7 +542,9 @@ def user():
             balance=balance,
             is_premium=is_premium,
             is_artist=is_artist,
-            tickets=tickets
+            tickets=tickets,
+            suggested_songs=suggested_songs,
+            suggested_albums=suggested_albums
         )
     else:
         return redirect(url_for("login"))
