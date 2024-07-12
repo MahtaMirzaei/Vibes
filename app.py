@@ -57,11 +57,11 @@ with sqlite3.connect("database.db") as connect:
     )
         connect.execute("""
     CREATE TABLE IF NOT EXISTS messages (
-    id SERIAL PRIMARY KEY,
     sender_id TEXT REFERENCES users(id),
     receiver_id TEXT REFERENCES users(id),
     text TEXT NOT NULL,
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (sender_id, receiver_id)
 )
 
 """)
