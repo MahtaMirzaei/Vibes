@@ -264,6 +264,9 @@ th, td {
   cursor: pointer;
 }
 
+.hidden {
+  display: none;
+}
 .submit-btn:hover {
   background-color: #00aa00;
 }

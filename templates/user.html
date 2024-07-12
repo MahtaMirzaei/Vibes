@@ -1,140 +1,162 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
-    <link
-    rel="icon"
-    type="image/png"
-    sizes="16x16"
-    href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}"
-  />
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}">
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Page</title>
-  </head>
-  <body>
-    <div class="div-header">
-      <h1>Welcome, {{ name }}!</h1>
-      <p>Your Balance: {{ balance }}</p>
-      <div>
-        <button
-          onclick="document.getElementById('chargeForm').style.display='block'"
-        >
-          Charge Account
-        </button>
-        <div id="chargeForm" style="display: none">
-          <form method="post" action="{{ url_for('charge') }}">
-            <input type="number" name="amount" required />
-            <button type="submit">Charge</button>
-          </form>
-        </div>
-      </div>
-      <div>
-        {% if is_artist %}
-        <a href="{{ url_for('artist_page') }}"><button>Artist Page</button></a>
-        {% endif %}
-      </div>
-      <div>
-        {% if not is_premium %}
-        <button
-          onclick="document.getElementById('premiumForm').style.display='block'"
-        >
-          Get Premium
-        </button>
-        {% endif %}
-        <div id="premiumForm" style="display: none">
-          {% if balance >= 1000 %}
-          <p>Are you certain to purchase premium?</p>
-          <form method="post" action="{{ url_for('premium') }}">
-            <button type="submit">Proceed</button>
-          </form>
-          <button
-            onclick="document.getElementById('premiumForm').style.display='none'"
-          >
-            No
-          </button>
-          {% else %}
-          <p>You don't have enough credit, please charge first.</p>
-          {% endif %}
-        <div>
-            {% if is_artist %}
-            <form action="{{ url_for('artist_page') }}" method="GET">
-                <button type="submit">Go to Artist Page</button>
-            </form>
-            {% endif %}
-        </div>
-        <div>
-            {% if not is_premium %}
-                <button onclick="document.getElementById('premiumForm').style.display='block'">Get Premium</button>
-            {% endif %}
-            <div id="premiumForm" style="display:none;">
-                {% if balance >= 1000 %}
-                    <p>Are you certain to purchase premium?</p>
-                    <form method="post" action="{{ url_for('premium') }}">
-                        <button type="submit">Proceed</button>
-                    </form>
-                    <button onclick="document.getElementById('premiumForm').style.display='none'">No</button>
-                {% else %}
-                    <p>You don't have enough credit, please charge first.</p>
-                {% endif %}
-            </div>
-        </div>
-        <div>
-            <form action="{{ url_for('logout') }}" method="post">
-                <button type="submit">Logout</button>
-            </form>
-        </div>
-      </div>
-      <div>
-        <form action="{{ url_for('logout') }}" method="post">
-          <button type="submit">Logout</button>
-        </form>
-      </div>
+    <style>
+        body {
+            background-color: #1e1e1f;
+            color: #ffffff;
+        }
 
-      <h2>Search</h2>
-      <form action="{{ url_for('search') }}" method="post">
-        <label for="search_category">Search by:</label>
-        <select name="search_category" id="search_category">
-            <option value="song_name">Song Name</option>
-            <option value="artist">Artist</option>
-            <option value="age">Age</option>
-            <option value="genre">Genre</option>
-        </select>
-        <input type="text" name="search_input" id="search_input" placeholder="Enter search term" />
-        <button type="submit">Search</button>
-    </form>
-    <h2>Buy Concert Ticket</h2>
-    <form method="post" action="{{ url_for('buy_ticket') }}">
-        <label for="concert_id">Concert ID:</label>
-        <input type="number" name="concert_id" required />
-        <button type="submit">Buy Ticket</button>
-    </form>
-    <div>
-      <h2>Your Tickets</h2>
-      <ul>
-          {% for ticket in tickets %}
-          <li>Concert: {{ ticket[1] }} - Singer: {{ ticket[2] }} - Date: {{ ticket[3] }} - Ticket Price: ${{ ticket[4] }}</li>
-          {% endfor %}
-      </ul>
-      <div>
-      <a href="{{ url_for('create_playlist') }}">
-        <button type="button">Create New Playlist</button>
-    </a>
-  </div><div>
+        .welcome {
+            color: #9400d3;
+            font-size: 3rem;
+            margin: 20px;
+        }
 
-      <a href="{{ url_for('search') }}">Go to Search Page</a>
+        .balance {
+            font-size: 1.5rem;
+            margin: 20px;
+        }
 
-  </div>
-      <a href="{{ url_for('follows') }}">Go to Follow Page</a>
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px;
+        }
+
+        .btn-custom {
+            background-color: #9400d3;
+            color: #ffffff;
+            border: none;
+        }
+
+        .btn-custom:hover {
+            background-color: #7500a9;
+        }
+
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+
+        .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidenav a:hover {
+            color: #f1f1f1;
+        }
+
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+
+        .main {
+            transition: margin-left .5s;
+            padding: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="welcome">Welcome, {{ name }}!</div>
+        <div class="balance">Your Balance: {{ balance }}</div>
+        <div class="menu-buttons">
+            <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">Search</button>
+            <button class="btn btn-custom" onclick="openNav()">Settings</button>
+            <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">Follow</button>
+            
+        </div>
+
 
     </div>
+
+
+
+    <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <form method="post" action="{{ url_for('charge') }}" class="mb-2">
+            <label for="amount">Charge Account:</label>
+            <input type="number" name="amount" required class="form-control mb-2" />
+            <button type="submit" class="btn btn-custom">Charge</button>
+        </form>
+        <form method="post" action="{{ url_for('buy_ticket') }}" class="mb-2">
+            <label for="concert_id">Concert ID:</label>
+            <input type="number" name="concert_id" required class="form-control mb-2" />
+            <button type="submit" class="btn btn-custom">Buy Ticket</button>
+        </form>
+        <a href="{{ url_for('create_playlist') }}" class="btn btn-custom mb-2">Create New Playlist</a>
+        {% if is_artist %}
+        <a href="{{ url_for('artist_page') }}" class="btn btn-custom mb-2">Artist Page</a>
+        {% endif %}
+        {% if not is_premium %}
+        <button class="btn btn-custom mb-2" onclick="checkPremium()">Get Premium</button>
+        <div id="premiumForm" style="display: none;">
+            {% if balance >= 1000 %}
+            <p>Are you certain to purchase premium?</p>
+            <form method="post" action="{{ url_for('premium') }}">
+                <button type="submit" class="btn btn-custom mb-2">Proceed</button>
+            </form>
+            <button class="btn btn-custom mb-2" onclick="document.getElementById('premiumForm').style.display='none'">No</button>
+            {% else %}
+            <p>You don't have enough credit, please charge first.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+        <form action="{{ url_for('logout') }}" method="post" class="mb-2">
+            <button type="submit" class="btn btn-custom">Logout</button>
+        </form>
+    </div>
+
     
+      
+
+
     <script>
-      function checkPremium() {
-        document.getElementById("premiumForm").style.display = "block";
-      }
+        function openNav() {
+            document.getElementById("mySidenav").style.width = "250px";
+            document.querySelector('.main').style.marginLeft = "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidenav").style.width = "0";
+            document.querySelector('.main').style.marginLeft = "0";
+        }
+
+        function checkPremium() {
+            document.getElementById("premiumForm").style.display = "block";
+        }
     </script>
-  </body>
+</body>
+
 </html>

@@ -1,96 +1,119 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}"
+        rel="icon"
+        type="image/png"
+        sizes="16x16"
+        href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}"
     />
     <title>Participants</title>
     <style>
-      table,
-      th,
-      td {
-        border: 1px solid black;
-        border-collapse: collapse;
-        padding: 8px;
-      }
-      th {
-        background-color: #f2f2f2;
-      }
+        body {
+            background-color: #1e1e1f; /* Dark background color */
+            color: #ffffff; /* White text color */
+        }
+        .form-label {
+            color: #ffffff; /* White label text color */
+        }
+        .btn-custom {
+            background-color: #9400d3; /* Purple button color */
+            color: #ffffff; /* White text color */
+            border: none;
+        }
+        .btn-custom:hover {
+            background-color: #7500a9; /* Darker purple on hover */
+        }
+        table,
+        th,
+        td {
+            border: 1px solid #9400d3; /* Purple border color */
+            border-collapse: collapse;
+            padding: 8px;
+            color: #ffffff; /* White text color */
+        }
+        th {
+            background-color: #9400d3; /* Purple header background */
+        }
     </style>
-  </head>
+</head>
+<body class="bg-dark text-light">
+    <div class="container mt-4">
+        <h1 class="text-center">Songs List</h1>
+        <table class="table table-dark table-bordered">
+            <thead>
+                <tr>
+                    <th>Song ID</th>
+                    <th>Artist ID</th>
+                    <th>Album ID</th>
+                    <th>Name</th>
+                    <th>File</th>
+                    <th>Lyrics</th>
+                    <th>Release Date</th>
+                    <th>Age Rating</th>
+                    <th>Genre</th>
+                    <th>Duration</th>
+                    <th>Is Limited</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for song in song_data %}
+                <tr>
+                    <td>{{ song[0] }}</td>
+                    <td>{{ song[1] }}</td>
+                    <td>{{ song[2] }}</td>
+                    <td>{{ song[3] }}</td>
+                    <td>{{ song[4] }}</td>
+                    <td>{{ song[5] }}</td>
+                    <td>{{ song[6] }}</td>
+                    <td>{{ song[7] }}</td>
+                    <td>{{ song[8] }}</td>
+                    <td>{{ song[9] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-  <body>
-    <div class="div-header">
-      <h1>Songs List</h1>
-      <table style="width: 100%">
-        <tr>
-          <th>Song ID</th>
-          <th>Artist ID</th>
-          <th>Album ID</th>
-          <th>name</th>
-          <th>file</th>
-          <th>lyrics</th>
-          <th>release date</th>
-          <th>age rating</th>
-          <th>genre</th>
-          <th>duration</th>
-          <th>is_limited</th>
-        </tr>
-        {% for songs in song_data %}
-        <tr>
-          <td>{{ songs[0] }}</td>
-          <td>{{ songs[1] }}</td>
-          <td>{{ songs[2] }}</td>
-          <td>{{ songs[3] }}</td>
-          <td>{{ songs[4] }}</td>
-          <td>{{ songs[5] }}</td>
-          <td>{{ songs[6] }}</td>
-          <td>{{ songs[7] }}</td>
-          <td>{{ songs[8] }}</td>
-          <td>{{ songs[9] }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-
-      <h1>Users List</h1>
-      <table style="width: 100%">
-        <tr>
-          <th>User ID</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>City</th>
-          <th>Country</th>
-          <th>Phone Number</th>
-          <th>Age</th>
-          <th>Balance</th>
-          <th>Is Artist</th>
-          <th>Is Premium</th>
-        </tr>
-        {% for participant in data %}
-        <tr>
-          <td>{{ participant[0] }}</td>
-          <td>{{ participant[1] }}</td>
-          <td>{{ participant[2] }}</td>
-          <td>{{ participant[3] }}</td>
-          <td>{{ participant[4] }}</td>
-          <td>{{ participant[5] }}</td>
-          <td>{{ participant[6] }}</td>
-          <td>{{ participant[7] }}</td>
-          <td>{{ participant[8] }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+        <h1 class="text-center">Users List</h1>
+        <table class="table table-dark table-bordered">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>City</th>
+                    <th>Country</th>
+                    <th>Phone Number</th>
+                    <th>Age</th>
+                    <th>Balance</th>
+                    <th>Is Artist</th>
+                    <th>Is Premium</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for participant in data %}
+                <tr>
+                    <td>{{ participant[0] }}</td>
+                    <td>{{ participant[1] }}</td>
+                    <td>{{ participant[2] }}</td>
+                    <td>{{ participant[3] }}</td>
+                    <td>{{ participant[4] }}</td>
+                    <td>{{ participant[5] }}</td>
+                    <td>{{ participant[6] }}</td>
+                    <td>{{ participant[7] }}</td>
+                    <td>{{ participant[8] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-  </body>
+</body>
 </html>
