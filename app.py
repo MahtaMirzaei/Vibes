@@ -133,10 +133,10 @@ with sqlite3.connect("database.db") as connect:
 );
             """
     )
-        connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-1', '2017-05-14', 'happy', 2) ")
-        connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-2', '2017-05-14', 'happy', 2) ")
-        connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-3', '2017-05-14', 'happy', 2) ")
-        connect.execute(" INSERT OR IGNORE INTO album (name, release_date, genre, user_id) VALUES ('album-4', '2017-05-14', 'happy', 2) ")
+        connect.execute(" INSERT OR IGNORE INTO album (album_id, name, release_date, genre, user_id) VALUES ('1', 'album-1', '2017-05-14', 'happy', 2) ")
+        connect.execute(" INSERT OR IGNORE INTO album (album_id, name, release_date, genre, user_id) VALUES ('2','album-2', '2017-05-14', 'happy', 2) ")
+        connect.execute(" INSERT OR IGNORE INTO album (album_id, name, release_date, genre, user_id) VALUES ('3','album-3', '2017-05-14', 'happy', 2) ")
+        connect.execute(" INSERT OR IGNORE INTO album (album_id, name, release_date, genre, user_id) VALUES ('4','album-4', '2017-05-14', 'happy', 2) ")
 
 
         connect.execute(
@@ -200,10 +200,10 @@ with sqlite3.connect("database.db") as connect:
     )
 
 
-        connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-5', '0', '0', '2017-05-14', 12, 'scary', 2, 0, 3, 1) ")
-        connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-6', '0', '0', '2017-05-14', 13, 'scary', 2, 0, 3, 1) ")
-        connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-7', '0', '0', '2017-05-14', 14, 'scary', 2, 0, 3, 1) ")
-        connect.execute(" INSERT OR IGNORE INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('song-8', '0', '0', '2017-05-14', 15, 'scary', 2, 1, 3, 1) ")
+        connect.execute(" INSERT OR IGNORE INTO songs (song_id, name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('1', 'song-5', '0', '0', '2017-05-14', 12, 'scary', 2, 0, 3, 1) ")
+        connect.execute(" INSERT OR IGNORE INTO songs (song_id,name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('2', 'song-6', '0', '0', '2017-05-14', 13, 'scary', 2, 0, 3, 1) ")
+        connect.execute(" INSERT OR IGNORE INTO songs (song_id,name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('3', 'song-7', '0', '0', '2017-05-14', 14, 'scary', 2, 0, 3, 1) ")
+        connect.execute(" INSERT OR IGNORE INTO songs (song_id,name, file, lyrics, release_date, age_rating, genre, duration, is_limited, album_id, user_id) VALUES ('4', 'song-8', '0', '0', '2017-05-14', 15, 'scary', 2, 1, 3, 1) ")
 
         connect.execute(
         """
@@ -707,6 +707,7 @@ def logout():
     return redirect(url_for("login"))
 
 
+
 @app.route("/artist_page", methods=["GET", "POST"])
 def artist_page():
     if "user_id" in session and session.get("is_artist"):
@@ -818,7 +819,6 @@ def artist_page():
                 age_rating = request.form["age_rating"]
                 genre = request.form["genre"]
                 duration = request.form["duration"]
-                album_id = request.form["album_id"]
 
                 try:
                     with sqlite3.connect("database.db") as connect:
@@ -836,7 +836,7 @@ def artist_page():
                                 age_rating,
                                 genre,
                                 duration,
-                                album_id,
+                                "",
                                 user_id,
                             ),
                         )
@@ -976,7 +976,6 @@ def artist_page():
     else:
         flash("Access denied: You are not an artist.")
         return redirect(url_for("user"))
-
 
 @app.route("/buy_ticket", methods=["POST"])
 def buy_ticket():
@@ -1258,7 +1257,7 @@ def follows():
     following_set = {follow[0] for follow in following}
 
     return render_template('follows.html', followers=followers, following=following, all_users=all_users,
-                           following_set=following_set, friends=friends, pending_requests=pending_requests, friends_set=friends_set)
+    following_set=following_set, friends=friends, pending_requests=pending_requests, friends_set=friends_set)
 
 
 @app.route('/send_friendship_request', methods=['POST'])
