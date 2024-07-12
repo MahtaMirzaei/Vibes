@@ -343,6 +343,76 @@ th, td {
   background-color: #00aa00;
 }
 
+
+body {
+  background-color: #1e1e1f; /* Dark background color */
+  color: #ffffff; /* White text color */
+  font-family: Arial, sans-serif; /* Example font */
+}
+
+.container {
+  max-width: 960px; /* Adjust as needed */
+  margin: 0 auto; /* Center the container horizontally */
+  padding: 20px; /* Add padding for spacing */
+}
+
+.row {
+  display: flex; /* Use flexbox for layout */
+}
+
+.col-md-6 {
+  flex: 1; /* Equal width columns */
+  padding: 10px; /* Add padding between columns */
+}
+
+.logo {
+  max-width: 100%; /* Ensure logo is responsive */
+  display: block; /* Ensure it takes up space */
+  margin: 0 auto; /* Center the logo horizontally */
+}
+
+.text-center {
+  text-align: center; /* Center text horizontally */
+}
+
+.form-group {
+  margin-bottom: 1rem; /* Spacing between form elements */
+}
+
+.form-label {
+  color: #ffffff; /* White label text color */
+}
+
+.form-control {
+  background-color: #2d2d2e; /* Dark form background */
+  border: 1px solid #555; /* Example border style */
+  color: #ffffff; /* White text color */
+  padding: 0.375rem 0.75rem; /* Example padding */
+}
+
+.btn-custom {
+  background-color: #9400d3; /* Purple button color */
+  color: #ffffff; /* White text color */
+  border: none;
+  padding: 0.5rem 1rem; /* Example padding */
+  cursor: pointer;
+}
+
+.btn-custom:hover {
+  background-color: #7500a9; /* Darker purple on hover */
+}
+
+.sign-up-link {
+  color: #9400d3; /* Purple link color */
+}
+
+.sign-up-link:hover {
+  color: #7500a9; /* Darker purple on hover */
+  text-decoration: none; /* Remove underline on hover */
+}
+
+
+
 /* Responsive */
 
 @media (max-width: 900px) {
