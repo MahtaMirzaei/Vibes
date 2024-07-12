@@ -2,59 +2,109 @@
 <html>
 <head>
     <title>Followers and Followings</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/follows.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #1e1e1f;
+            color: #ffffff;
+        }
+        h1, h2 {
+            color: #9400d3;
+        }
+        .btn-custom {
+            background-color: #9400d3;
+            color: #ffffff;
+            border: none;
+        }
+        .btn-custom:hover {
+            background-color: #7500a9;
+        }
+        table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #9400d3;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #7500a9;
+        }
+    </style>
 </head>
 <body>
-    <h1>Followers and Followings</h1>
+    <div class="container">
+        <h1>Vibes</h1>
 
-    <h2>Followers</h2>
-    <table>
-        <tr>
-            <th>User ID</th>
-        </tr>
-        {% for follower in followers %}
-        <tr>
-            <td>{{ follower[0] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+        <h2>Followers</h2>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for follower in followers %}
+                <tr>
+                    <td>{{ follower[0] }}</td>
+                    <td>{{ follower[1] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <h2>Following</h2>
-    <table>
-        <tr>
-            <th>User ID</th>
-        </tr>
-        {% for follow in following %}
-        <tr>
-            <td>{{ follow[0] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+        <h2>Following</h2>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for follow in following %}
+                <tr>
+                    <td>{{ follow[0] }}</td>
+                    <td>{{ follow[1] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <h2>All Users</h2>
-    <table>
-        <tr>
-            <th>User ID</th>
-            <th>Action</th>
-        </tr>
-        {% for user in all_users %}
-        <tr>
-            <td>{{ user[0] }}</td>
-            <td>
-                {% if user[0] in following_set %}
-                <form method="post" action="{{ url_for('follows') }}">
-                    <input type="hidden" name="user_id_to_unfollow" value="{{ user[0] }}">
-                    <button type="submit">Unfollow</button>
-                </form>
-                {% else %}
-                <form method="post" action="{{ url_for('follows') }}">
-                    <input type="hidden" name="user_id_to_follow" value="{{ user[0] }}">
-                    <button type="submit">Follow</button>
-                </form>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+        <h2>All Premium Users</h2>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>
+                        {% if user[0] in following_set %}
+                        <form method="post" action="{{ url_for('follows') }}" style="display:inline;">
+                            <input type="hidden" name="user_id_to_unfollow" value="{{ user[0] }}">
+                            <button type="submit" class="btn btn-danger btn-custom">Unfollow</button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{{ url_for('follows') }}" style="display:inline;">
+                            <input type="hidden" name="user_id_to_follow" value="{{ user[0] }}">
+                            <button type="submit" class="btn btn-success btn-custom">Follow</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>

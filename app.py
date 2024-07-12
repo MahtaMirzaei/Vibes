@@ -201,13 +201,8 @@ with sqlite3.connect("database.db") as connect:
         connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 2)")
         connect.execute(
-        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 'XC2XCb8n')")
-        connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (2, 1)")
-        connect.execute(
-        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', 1)")
-        connect.execute(
-        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', '9hjeeqpj')")
+
 
 
 
@@ -1089,48 +1084,55 @@ def add_song_to_playlist():
 
 @app.route('/follows', methods=['GET', 'POST'])
 def follows():
-    # Connect to the SQLite database
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
+    user_id = session['user_id']
+    
+    with sqlite3.connect('database.db') as conn:
+        cursor = conn.cursor()
 
-    # Get the current user's ID
-    # Assuming the user's ID is stored in the session
-    current_user_id = session.get('user_id')
+        # Handle follow/unfollow actions
+        if request.method == 'POST':
+            if 'user_id_to_follow' in request.form:
+                user_id_to_follow = request.form['user_id_to_follow']
+                # Check if user_id_to_follow contains digits
+                if user_id != user_id_to_follow:
+                    cursor.execute("SELECT COUNT(*) FROM FOLLOWS WHERE user_id1 = ? AND user_id2 = ?", (user_id, user_id_to_follow))
+                    if cursor.fetchone()[0] == 0:
+                        cursor.execute("INSERT INTO FOLLOWS (user_id1, user_id2) VALUES (?, ?)", (user_id, user_id_to_follow))
+                        conn.commit()
+            elif 'user_id_to_unfollow' in request.form:
+                user_id_to_unfollow = request.form['user_id_to_unfollow']
+                cursor.execute("DELETE FROM FOLLOWS WHERE user_id1 = ? AND user_id2 = ?", (user_id, user_id_to_unfollow))
+                conn.commit()
 
-    if request.method == 'POST':
-        # Check if the user wants to follow or unfollow someone
-        if 'user_id_to_follow' in request.form:
-            user_id_to_follow = request.form['user_id_to_follow']
-            # Insert the new follow relationship into the database
-            c.execute("INSERT INTO follows (user_id1, user_id2) VALUES (?, ?)",
-                      (current_user_id, user_id_to_follow))
-        elif 'user_id_to_unfollow' in request.form:
-            user_id_to_unfollow = request.form['user_id_to_unfollow']
-            # Remove the follow relationship from the database
-            c.execute("DELETE FROM follows WHERE user_id1 = ? AND user_id2 = ?",
-                      (current_user_id, user_id_to_unfollow))
-        conn.commit()
+        # Fetch followers
+        cursor.execute("""
+            SELECT u.user_id, u.name FROM USERS u 
+            JOIN FOLLOWS f ON u.user_id = f.user_id1 
+            WHERE f.user_id2 = ?
+        """, (user_id,))
+        followers = cursor.fetchall()
 
-    # Get the users that the current user is following
-    c.execute("SELECT user_id2 FROM follows WHERE user_id1 = ?",
-              (current_user_id,))
-    following = c.fetchall()
+        # Fetch followings
+        cursor.execute("""
+            SELECT u.user_id, u.name FROM USERS u 
+            JOIN FOLLOWS f ON u.user_id = f.user_id2 
+            WHERE f.user_id1 = ?
+        """, (user_id,))
+        following = cursor.fetchall()
 
-    # Get the users that are following the current user
-    c.execute("SELECT user_id1 FROM follows WHERE user_id2 = ?",
-              (current_user_id,))
-    followers = c.fetchall()
+        # Fetch all premium users
+        cursor.execute("""
+            SELECT user_id, name FROM USERS
+            WHERE user_id != ? AND is_premium = 1
+        """, (user_id,))
+        all_users = cursor.fetchall()
 
-    # Get the list of all users
-    c.execute(
-        "SELECT DISTINCT user_id1 FROM follows UNION SELECT DISTINCT user_id2 FROM follows")
-    all_users = c.fetchall()
+        following_set = {follow[0] for follow in following}
 
-    # Check which users the current user is following
-    following_set = set(follow[0] for follow in following)
-
-    # Render the HTML template with the data
     return render_template('follows.html', followers=followers, following=following, all_users=all_users, following_set=following_set)
+
+
+
 
 @app.route('/send_friendship_request', methods=['POST'])
 def send_friendship_request():
