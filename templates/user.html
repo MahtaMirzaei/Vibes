@@ -80,9 +80,11 @@
         <div class="welcome">Welcome, {{ name }}!</div>
         <div class="balance">Your Balance: {{ balance }}</div>
         <div class="menu-buttons">
-            <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">Search</button>
             <button class="btn btn-custom" onclick="openNav()">Settings</button>
-            <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">Follow</button>
+            {% if is_premium %}
+                <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">Search</button>
+                <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">Follow</button>
+            {% endif %}
         </div>
     </div>
 
@@ -110,6 +112,7 @@
             {% endif %}
         </div>
         {% endif %}
+        {% if is_premium %}
         <form method="post" action="{{ url_for('buy_ticket') }}" class="mb-2">
             <label for="concert_id">Concert ID:</label>
             <input type="number" name="concert_id" required class="form-control mb-2" />
@@ -120,12 +123,14 @@
             <input type="text" name="friend_id" required class="form-control mb-2" />
             <button type="submit" class="btn btn-custom">Send Friendship Request</button>
         </form>
+        {% endif %}
         <form action="{{ url_for('logout') }}" method="post" class="mb-2">
             <button type="submit" class="btn btn-custom">Logout</button>
         </form>
     </div>
 
     <div class="main">
+        {% if is_premium %}
         <h2>Tickets</h2>
         <ul>
             {% for ticket in tickets %}
@@ -149,6 +154,7 @@
                 </li>
             {% endfor %}
         </ul>
+        {% endif %}
     </div>
 
     <script>

@@ -1148,9 +1148,15 @@ def send_friendship_request():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver_id,))
-        if not cursor.fetchone():
+        cursor.execute("SELECT user_id, is_premium FROM users WHERE user_id = ?", (receiver_id,))
+        receiver = cursor.fetchone()
+
+        if not receiver:
             flash("Invalid user ID.")
+            return redirect(url_for("user"))
+
+        if not session["is_premium"] or not receiver["is_premium"]:
+            flash("Both sender and receiver must be premium users.")
             return redirect(url_for("user"))
 
         cursor.execute(
@@ -1159,14 +1165,23 @@ def send_friendship_request():
         )
         if cursor.fetchone():
             flash("Friendship request already sent.")
-        else:
-            cursor.execute(
-                "INSERT INTO friendship_requests (sender_id, receiver_id) VALUES (?, ?)",
-                (sender_id, receiver_id)
-            )
-            conn.commit()
-            flash("Friendship request sent.")
+            return redirect(url_for("user"))
+
+        cursor.execute(
+            "SELECT * FROM friends WHERE user_id = ? AND friend_id = ?",
+            (sender_id, receiver_id)
+        )
+        if cursor.fetchone():
+            flash("You are already friends with this user.")
+            return redirect(url_for("user"))
+
+        cursor.execute(
+            "INSERT INTO friendship_requests (sender_id, receiver_id) VALUES (?, ?)",
+            (sender_id, receiver_id)
+        )
+        conn.commit()
         conn.close()
+        flash("Friendship request sent.")
     except Exception as e:
         logging.error(f"Error sending friendship request: {e}")
         flash("An error occurred.")
@@ -1228,6 +1243,7 @@ def decline_friendship_request():
         flash("An error occurred.")
 
     return redirect(url_for("user"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
