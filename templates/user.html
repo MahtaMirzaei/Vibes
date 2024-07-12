@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -17,35 +16,29 @@
             background-color: #1e1e1f;
             color: #ffffff;
         }
-
         .welcome {
             color: #9400d3;
             font-size: 3rem;
             margin: 20px;
         }
-
         .balance {
             font-size: 1.5rem;
             margin: 20px;
         }
-
         .menu-buttons {
             display: flex;
             flex-direction: column;
             gap: 10px;
             margin: 20px;
         }
-
         .btn-custom {
             background-color: #9400d3;
             color: #ffffff;
             border: none;
         }
-
         .btn-custom:hover {
             background-color: #7500a9;
         }
-
         .sidenav {
             height: 100%;
             width: 0;
@@ -58,7 +51,6 @@
             transition: 0.5s;
             padding-top: 60px;
         }
-
         .sidenav a {
             padding: 8px 8px 8px 32px;
             text-decoration: none;
@@ -67,11 +59,9 @@
             display: block;
             transition: 0.3s;
         }
-
         .sidenav a:hover {
             color: #f1f1f1;
         }
-
         .sidenav .closebtn {
             position: absolute;
             top: 0;
@@ -79,14 +69,12 @@
             font-size: 36px;
             margin-left: 50px;
         }
-
         .main {
             transition: margin-left .5s;
             padding: 16px;
         }
     </style>
 </head>
-
 <body>
     <div class="main">
         <div class="welcome">Welcome, {{ name }}!</div>
@@ -95,13 +83,8 @@
             <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">Search</button>
             <button class="btn btn-custom" onclick="openNav()">Settings</button>
             <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">Follow</button>
-            
         </div>
-
-
     </div>
-
-
 
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -110,12 +93,6 @@
             <input type="number" name="amount" required class="form-control mb-2" />
             <button type="submit" class="btn btn-custom">Charge</button>
         </form>
-        <form method="post" action="{{ url_for('buy_ticket') }}" class="mb-2">
-            <label for="concert_id">Concert ID:</label>
-            <input type="number" name="concert_id" required class="form-control mb-2" />
-            <button type="submit" class="btn btn-custom">Buy Ticket</button>
-        </form>
-        <a href="{{ url_for('create_playlist') }}" class="btn btn-custom mb-2">Create New Playlist</a>
         {% if is_artist %}
         <a href="{{ url_for('artist_page') }}" class="btn btn-custom mb-2">Artist Page</a>
         {% endif %}
@@ -133,30 +110,58 @@
             {% endif %}
         </div>
         {% endif %}
+        <form method="post" action="{{ url_for('buy_ticket') }}" class="mb-2">
+            <label for="concert_id">Concert ID:</label>
+            <input type="number" name="concert_id" required class="form-control mb-2" />
+            <button type="submit" class="btn btn-custom">Buy Ticket</button>
+        </form>
+        <form method="post" action="{{ url_for('send_friendship_request') }}" class="mb-2">
+            <label for="friend_id">Friend ID:</label>
+            <input type="text" name="friend_id" required class="form-control mb-2" />
+            <button type="submit" class="btn btn-custom">Send Friendship Request</button>
+        </form>
         <form action="{{ url_for('logout') }}" method="post" class="mb-2">
             <button type="submit" class="btn btn-custom">Logout</button>
         </form>
     </div>
 
-    
-      
+    <div class="main">
+        <h2>Tickets</h2>
+        <ul>
+            {% for ticket in tickets %}
+                <li>{{ ticket.name }} by {{ ticket.singer_name }} on {{ ticket.date }} - Price: {{ ticket.ticket_price }}</li>
+            {% endfor %}
+        </ul>
 
+        <h2>Friendship Requests</h2>
+        <ul>
+            {% for request in friendship_requests %}
+                <li>
+                    From: {{ request.sender_id }} ({{ request.sender_email }})
+                    <form method="post" action="{{ url_for('accept_friendship_request') }}" style="display: inline;">
+                        <input type="hidden" name="sender_id" value="{{ request.sender_id }}">
+                        <button type="submit" class="btn btn-success">Accept</button>
+                    </form>
+                    <form method="post" action="{{ url_for('decline_friendship_request') }}" style="display: inline;">
+                        <input type="hidden" name="sender_id" value="{{ request.sender_id }}">
+                        <button type="submit" class="btn btn-danger">Decline</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 
     <script>
         function openNav() {
             document.getElementById("mySidenav").style.width = "250px";
-            document.querySelector('.main').style.marginLeft = "250px";
         }
 
         function closeNav() {
             document.getElementById("mySidenav").style.width = "0";
-            document.querySelector('.main').style.marginLeft = "0";
         }
-
         function checkPremium() {
             document.getElementById("premiumForm").style.display = "block";
         }
     </script>
 </body>
-
 </html>

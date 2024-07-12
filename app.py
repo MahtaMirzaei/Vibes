@@ -13,11 +13,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Connect to the database and create the tables with the new schema
 with sqlite3.connect("database.db") as connect:
-    connect.execute(
+        connect.execute(
         """
         CREATE TABLE IF NOT EXISTS FOLLOWS (
-        user_id1 INTEGER,
-        user_id2 INTEGER,
+        user_id1 TEXT,
+        user_id2 TEXT,
         PRIMARY KEY (user_id1, user_id2),
         FOREIGN KEY (user_id1) REFERENCES users(user_id),
         FOREIGN KEY (user_id2) REFERENCES users(user_id)
@@ -25,12 +25,12 @@ with sqlite3.connect("database.db") as connect:
         )
 """
     )
-    connect.execute(
+        connect.execute(
         """
     CREATE TABLE IF NOT EXISTS TICKETS (
     ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
     concert_id INTEGER,
-    user_id INTEGER,
+    user_id TEXT,
     ticket_price REAL,
     FOREIGN KEY (concert_id) REFERENCES concerts(concert_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -38,7 +38,7 @@ with sqlite3.connect("database.db") as connect:
     )
 """
     )
-    connect.execute(
+        connect.execute(
         """
         CREATE TABLE IF NOT EXISTS USERS (
             user_id TEXT PRIMARY KEY,
@@ -55,34 +55,34 @@ with sqlite3.connect("database.db") as connect:
         )
     """
     )
-    connect.execute("""
+        connect.execute("""
     CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
-    sender_id INTEGER REFERENCES users(id),
-    receiver_id INTEGER REFERENCES users(id),
+    sender_id TEXT REFERENCES users(id),
+    receiver_id TEXT REFERENCES users(id),
     text TEXT NOT NULL,
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 
 """)
-    connect.execute("""
+        connect.execute("""
     CREATE TABLE IF NOT EXISTS friends (
-    user_id INTEGER REFERENCES users(id),
-    friend_id INTEGER REFERENCES users(id),
+    user_id TEXT REFERENCES users(id),
+    friend_id TEXT REFERENCES users(id),
     PRIMARY KEY (user_id, friend_id)
 )
 
     """)
     
-    connect.execute("""
+        connect.execute("""
     CREATE TABLE IF NOT EXISTS friendship_requests (
-    sender_id INTEGER REFERENCES users(id),
-    receiver_id INTEGER REFERENCES users(id),
+    sender_id TEXT REFERENCES users(id),
+    receiver_id TEXT REFERENCES users(id),
     PRIMARY KEY (sender_id, receiver_id)
     )
 
      """)
-    connect.execute(
+        connect.execute(
         """
         CREATE TABLE IF NOT EXISTS TRANSACTIONS (
             transaction_id TEXT PRIMARY KEY,
@@ -95,7 +95,7 @@ with sqlite3.connect("database.db") as connect:
         )
     """
     )
-    connect.execute(
+        connect.execute(
         """
                 CREATE TABLE IF NOT EXISTS concerts (
                     concert_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,7 +108,7 @@ with sqlite3.connect("database.db") as connect:
                 )
                 """
     )
-    connect.execute(
+        connect.execute(
         """
             CREATE TABLE IF NOT EXISTS ALBUM (
                 album_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -121,7 +121,7 @@ with sqlite3.connect("database.db") as connect:
             """
     )
 
-    connect.execute(
+        connect.execute(
         """
             CREATE TABLE IF NOT EXISTS song_likes (
             id SERIAL PRIMARY KEY,
@@ -134,10 +134,10 @@ with sqlite3.connect("database.db") as connect:
             """
     )
 
-    connect.execute(
+        connect.execute(
         """CREATE TABLE IF NOT EXISTS playlists (
     playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    creator_id INTEGER,
+    creator_id TEXT,
     playlist_name TEXT NOT NULL,
     genre TEXT NOT NULL,
     is_private BOOLEAN NOT NULL CHECK (is_private IN (0, 1)),
@@ -145,7 +145,7 @@ with sqlite3.connect("database.db") as connect:
 )
 """
     )
-    connect.execute(
+        connect.execute(
         """CREATE TABLE IF NOT EXISTS playlist_songs (
     playlist_id INTEGER,
     song_id INTEGER,
@@ -154,11 +154,11 @@ with sqlite3.connect("database.db") as connect:
     PRIMARY KEY (playlist_id, song_id)
 );"""
     )
-    connect.execute(
+        connect.execute(
         """
             CREATE TABLE IF NOT EXISTS SONGS (
                 song_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                album_id TEXT,
+                album_id INTEGER,
                 name TEXT,
                 file TEXT,
                 lyrics TEXT,
@@ -167,47 +167,46 @@ with sqlite3.connect("database.db") as connect:
                 genre TEXT,
                 duration INTEGER,
                 is_limited BOOLEAN DEFAULT 0,
-                album_id INTEGER,
                 user_id TEXT,
                 FOREIGN KEY (album_id) REFERENCES ALBUM (album_id),
                 FOREIGN KEY (user_id) REFERENCES USERS (user_id)
             )
             """
     )
-    connect.execute(
+        connect.execute(
         """
         INSERT OR IGNORE  INTO USERS (user_id, name, email, city, country, phone, age, password, balance, is_artist, is_premium)
         VALUES (1, 'admin', 'a@mail.com' , 'Isfahan', 'Iran', 1212, 100, 123123, 99999999999, 1, 1)
     """
     )
-    connect.execute(
+        connect.execute(
         """
         INSERT OR IGNORE  INTO USERS (user_id, name, email, city, country, phone, age, password, balance, is_artist, is_premium)
         VALUES (2, 'bank', 'b@mail.com' , 'Isfahan', 'Iran', 1010, 25, 123123, 0, 1, 1)
     """
     )
-    connect.execute(
+        connect.execute(
         """
         INSERT OR IGNORE  INTO TRANSACTIONS (transaction_id, user_id, recipient_id, date, amount)
         VALUES ('0', '1', '2', '2/2/2', 1000 )
     """
     )
-    connect.execute(
+        connect.execute(
 
         """
         INSERT OR IGNORE  INTO playlists (playlist_id, creator_id, playlist_name, genre, is_private)
         VALUES ('0', '1', 'kitty', 'haappy', 0 )
     """
     )
-    connect.execute(
+        connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 2)")
-    connect.execute(
+        connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 'XC2XCb8n')")
-    connect.execute(
+        connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (2, 1)")
-    connect.execute(
+        connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', 1)")
-    connect.execute(
+        connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', '9hjeeqpj')")
 
 
@@ -421,6 +420,12 @@ def search():
     return render_template("search.html")
 
 
+
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
 @app.route("/user")
 def user():
     if "user_id" in session:
@@ -431,37 +436,37 @@ def user():
         is_artist = session["is_artist"]
 
         try:
-            with sqlite3.connect("database.db") as connect:
-                cursor = connect.cursor()
-                cursor.execute(
-                    """
-                    SELECT T.ticket_id, C.name, U.name AS singer_name, C.date, T.ticket_price 
-                    FROM TICKETS T
-                    JOIN concerts C ON T.concert_id = C.concert_id
-                    JOIN USERS U ON C.user_id = U.user_id
-                    WHERE T.user_id = ?
-                    """,
-                    (user_id,)
-                )
-                tickets = cursor.fetchall()
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT FR.sender_id, U.email AS sender_email
+                FROM friendship_requests FR
+                JOIN users U ON FR.sender_id = U.user_id
+                WHERE FR.receiver_id = ?
+                """,
+                (user_id,)
+            )
+            friendship_requests = cursor.fetchall()
+            conn.close()
         except Exception as e:
-            logging.error(f"Error fetching tickets: {e}")
+            logging.error(f"Error fetching data: {e}")
             tickets = []
+            friendship_requests = []
 
         return render_template(
-            "user.html",
+            'user.html',
             user_id=user_id,
             name=name,
             balance=balance,
             is_premium=is_premium,
             is_artist=is_artist,
-            tickets=tickets
+            friendship_requests=friendship_requests
         )
     else:
         return redirect(url_for("login"))
-
-
-
+    
 @app.route("/charge", methods=["POST"])
 def charge():
     if "user_id" in session:
@@ -1127,7 +1132,102 @@ def follows():
     # Render the HTML template with the data
     return render_template('follows.html', followers=followers, following=following, all_users=all_users, following_set=following_set)
 
+@app.route('/send_friendship_request', methods=['POST'])
+def send_friendship_request():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
+    sender_id = session["user_id"]
+    receiver_id = request.form['friend_id']
+
+    if sender_id == receiver_id:
+        flash("You cannot send a request to yourself.")
+        return redirect(url_for("user"))
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver_id,))
+        if not cursor.fetchone():
+            flash("Invalid user ID.")
+            return redirect(url_for("user"))
+
+        cursor.execute(
+            "SELECT * FROM friendship_requests WHERE sender_id = ? AND receiver_id = ?",
+            (sender_id, receiver_id)
+        )
+        if cursor.fetchone():
+            flash("Friendship request already sent.")
+        else:
+            cursor.execute(
+                "INSERT INTO friendship_requests (sender_id, receiver_id) VALUES (?, ?)",
+                (sender_id, receiver_id)
+            )
+            conn.commit()
+            flash("Friendship request sent.")
+        conn.close()
+    except Exception as e:
+        logging.error(f"Error sending friendship request: {e}")
+        flash("An error occurred.")
+
+    return redirect(url_for("user"))
+
+@app.route('/accept_friendship_request', methods=['POST'])
+def accept_friendship_request():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    sender_id = request.form['sender_id']
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO friends (user_id, friend_id) VALUES (?, ?)",
+            (user_id, sender_id)
+        )
+        cursor.execute(
+            "INSERT INTO friends (user_id, friend_id) VALUES (?, ?)",
+            (sender_id, user_id)
+        )
+        cursor.execute(
+            "DELETE FROM friendship_requests WHERE sender_id = ? AND receiver_id = ?",
+            (sender_id, user_id)
+        )
+        conn.commit()
+        conn.close()
+        flash("Friendship request accepted.")
+    except Exception as e:
+        logging.error(f"Error accepting friendship request: {e}")
+        flash("An error occurred.")
+
+    return redirect(url_for("user"))
+
+@app.route('/decline_friendship_request', methods=['POST'])
+def decline_friendship_request():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    sender_id = request.form['sender_id']
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM friendship_requests WHERE sender_id = ? AND receiver_id = ?",
+            (sender_id, user_id)
+        )
+        conn.commit()
+        conn.close()
+        flash("Friendship request declined.")
+    except Exception as e:
+        logging.error(f"Error declining friendship request: {e}")
+        flash("An error occurred.")
+
+    return redirect(url_for("user"))
 
 if __name__ == "__main__":
     app.run(debug=True)
