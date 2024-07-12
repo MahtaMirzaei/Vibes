@@ -55,6 +55,33 @@ with sqlite3.connect("database.db") as connect:
         )
     """
     )
+    connect.execute("""
+    CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(id),
+    receiver_id INTEGER REFERENCES users(id),
+    text TEXT NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+
+""")
+    connect.execute("""
+    CREATE TABLE IF NOT EXISTS friends (
+    user_id INTEGER REFERENCES users(id),
+    friend_id INTEGER REFERENCES users(id),
+    PRIMARY KEY (user_id, friend_id)
+)
+
+    """)
+    
+    connect.execute("""
+    CREATE TABLE IF NOT EXISTS friendship_requests (
+    sender_id INTEGER REFERENCES users(id),
+    receiver_id INTEGER REFERENCES users(id),
+    PRIMARY KEY (sender_id, receiver_id)
+    )
+
+     """)
     connect.execute(
         """
         CREATE TABLE IF NOT EXISTS TRANSACTIONS (
@@ -108,6 +135,26 @@ with sqlite3.connect("database.db") as connect:
     )
 
     connect.execute(
+        """CREATE TABLE IF NOT EXISTS playlists (
+    playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    creator_id INTEGER,
+    playlist_name TEXT NOT NULL,
+    genre TEXT NOT NULL,
+    is_private BOOLEAN NOT NULL CHECK (is_private IN (0, 1)),
+    FOREIGN KEY (creator_id) REFERENCES users(user_id)
+)
+"""
+    )
+    connect.execute(
+        """CREATE TABLE IF NOT EXISTS playlist_songs (
+    playlist_id INTEGER,
+    song_id INTEGER,
+    FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id),
+    FOREIGN KEY (song_id) REFERENCES songs(song_id),
+    PRIMARY KEY (playlist_id, song_id)
+);"""
+    )
+    connect.execute(
         """
             CREATE TABLE IF NOT EXISTS SONGS (
                 song_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -146,6 +193,13 @@ with sqlite3.connect("database.db") as connect:
     """
     )
     connect.execute(
+
+        """
+        INSERT OR IGNORE  INTO playlists (playlist_id, creator_id, playlist_name, genre, is_private)
+        VALUES ('0', '1', 'kitty', 'haappy', 0 )
+    """
+    )
+    connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 2)")
     connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 'XC2XCb8n')")
@@ -155,6 +209,7 @@ with sqlite3.connect("database.db") as connect:
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', 1)")
     connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', '9hjeeqpj')")
+
 
 
 @app.route("/")
@@ -375,6 +430,24 @@ def user():
         is_premium = session["is_premium"]
         is_artist = session["is_artist"]
 
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute(
+                    """
+                    SELECT T.ticket_id, C.name, U.name AS singer_name, C.date, T.ticket_price 
+                    FROM TICKETS T
+                    JOIN concerts C ON T.concert_id = C.concert_id
+                    JOIN USERS U ON C.user_id = U.user_id
+                    WHERE T.user_id = ?
+                    """,
+                    (user_id,)
+                )
+                tickets = cursor.fetchall()
+        except Exception as e:
+            logging.error(f"Error fetching tickets: {e}")
+            tickets = []
+
         return render_template(
             "user.html",
             user_id=user_id,
@@ -382,9 +455,11 @@ def user():
             balance=balance,
             is_premium=is_premium,
             is_artist=is_artist,
+            tickets=tickets
         )
     else:
         return redirect(url_for("login"))
+
 
 
 @app.route("/charge", methods=["POST"])
@@ -429,14 +504,6 @@ def charge():
                     VALUES (?, ?, ?, ?, ?)
                     """,
                     (transaction_id_user, user_id, bank_id, amount, date),
-                )
-
-                cursor.execute(
-                    """
-                    INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date)
-                    VALUES (?, ?, ?, ?, ?)
-                    """,
-                    (transaction_id_bank, bank_id, user_id, -amount, date),
                 )
 
                 connect.commit()
@@ -577,12 +644,72 @@ def artist_page():
                 try:
                     with sqlite3.connect("database.db") as connect:
                         cursor = connect.cursor()
+                    
+                        # Get concert details
+                    cursor.execute("SELECT price, user_id FROM concerts WHERE concert_id = ?", (concert_id,))
+                    concert = cursor.fetchone()
+                    if not concert:
+                        flash("Concert not found.")
+                        return redirect(url_for("artist_page"))
+                    
+                    concert_price, singer_id = concert
+
+                    # Get all tickets for the concert
+                    cursor.execute("SELECT user_id, ticket_price FROM TICKETS WHERE concert_id = ?", (concert_id,))
+                    tickets = cursor.fetchall()
+
+                    ticket_count = len(tickets)
+                    
+                    # Refund each user
+                    for ticket in tickets:
+                        ticket_user_id, ticket_price = ticket
+                        
+                        # Update user's balance
+                        cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (ticket_user_id,))
+                        user_balance = cursor.fetchone()[0]
+                        new_user_balance = user_balance + ticket_price
+                        cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_user_balance, ticket_user_id))
+                        
+                        # Create transaction for refund
+                        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+                        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
-                            "DELETE FROM concerts WHERE concert_id = ? AND user_id = ?",
-                            (concert_id, user_id),
+                            "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                            (transaction_id, singer_id, ticket_user_id, ticket_price, date)
                         )
-                        connect.commit()
-                        flash("Concert successfully deleted.")
+                    
+                    # Delete tickets
+                    cursor.execute("DELETE FROM TICKETS WHERE concert_id = ?", (concert_id,))
+                    
+                    # Refund admin's share to singer
+                    admin_id = 1
+                    admin_share_total = ticket_count * concert_price * 0.05
+                    
+                    cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (admin_id,))
+                    admin_balance = cursor.fetchone()[0]
+                    new_admin_balance = admin_balance - admin_share_total
+                    cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_admin_balance, admin_id))
+                    
+                    cursor.execute("SELECT balance FROM USERS WHERE user_id = ?", (singer_id,))
+                    singer_balance = cursor.fetchone()[0]
+                    new_singer_balance = singer_balance + admin_share_total
+                    cursor.execute("UPDATE USERS SET balance = ? WHERE user_id = ?", (new_singer_balance, singer_id))
+
+                    # Create transaction for admin to singer refund
+                    transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+                    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute(
+                        "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                        (transaction_id, admin_id, singer_id, admin_share_total, date)
+                    )
+
+                    # Delete the concert
+                    cursor.execute("DELETE FROM concerts WHERE concert_id = ? AND user_id = ?", (concert_id, user_id))
+
+                    # Commit the transaction
+                    connect.commit()
+                    
+                    flash("Concert and related tickets successfully deleted. Refunds have been processed.")
                 except Exception as e:
                     logging.error(f"Error deleting concert: {e}")
                     flash("An error occurred while deleting the concert.")
@@ -660,7 +787,26 @@ def artist_page():
                 except Exception as e:
                     logging.error(f"Error toggling song limit status: {e}")
                     flash("An error occurred while toggling the song limit status.")
+ 
 
+            elif action == "add_songs_to_album":
+                album_id = request.form["album_id"]
+                song_id = request.form["song_id"]
+
+                try:
+                    with sqlite3.connect("database.db") as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            "UPDATE songs SET album_id = ? WHERE song_id = ? AND user_id = ?",
+                            (album_id, song_id, user_id),
+                        )
+                        connect.commit()
+                        flash("Song successfully added to the album.")
+                except Exception as e:
+                    logging.error(f"Error adding song to album: {e}")
+                    flash("An error occurred while adding the song to the album.")
+
+                    
             elif action == "delete_album":
                 album_id = request.form["album_id"]
 
@@ -736,6 +882,206 @@ def artist_page():
         return redirect(url_for("user"))
 
 
+@app.route("/buy_ticket", methods=["POST"])
+def buy_ticket():
+    if "user_id" in session:
+        user_id = session["user_id"]
+        concert_id = request.form["concert_id"]
+        transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+
+                # Get the concert details
+                cursor.execute(
+                    "SELECT name, price, ticket_number, user_id, date FROM concerts WHERE concert_id = ?",
+                    (concert_id,)
+                )
+                concert = cursor.fetchone()
+                if not concert:
+                    flash("Concert not found.")
+                    return redirect(url_for("user"))
+
+                name, price, ticket_number, singer_id, concert_date = concert
+
+                # Check if user has enough balance
+                cursor.execute(
+                    "SELECT balance FROM USERS WHERE user_id = ?",
+                    (user_id,)
+                )
+                balance = cursor.fetchone()[0]
+                if balance < price:
+                    flash("Insufficient balance.")
+                    return redirect(url_for("user"))
+
+                # Check the number of tickets already sold
+                cursor.execute(
+                    "SELECT COUNT(*) FROM TICKETS WHERE concert_id = ?",
+                    (concert_id,)
+                )
+                sold_tickets = cursor.fetchone()[0]
+                if sold_tickets >= ticket_number:
+                    flash("No more tickets available for this concert.")
+                    return redirect(url_for("user"))
+
+                # Deduct the ticket price from user's balance
+                new_balance = balance - price
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_balance, user_id)
+                )
+
+                # Add the ticket price to the singer's balance
+                cursor.execute(
+                    "SELECT balance FROM USERS WHERE user_id = ?",
+                    (singer_id,)
+                )
+                singer_balance = cursor.fetchone()[0]
+                new_singer_balance = singer_balance + price
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_singer_balance, singer_id)
+                )
+
+                # Create a transaction record for the user to singer transaction
+                cursor.execute(
+                    "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                    (transaction_id, user_id, singer_id, price, date)
+                )
+
+                # Add 10% of the ticket price to the admin's balance (assuming admin has user_id = 1)
+                admin_id = 1
+                admin_share = price * 0.1
+                cursor.execute(
+                    "SELECT balance FROM USERS WHERE user_id = ?",
+                    (admin_id,)
+                )
+                admin_balance = cursor.fetchone()[0]
+                new_admin_balance = admin_balance + admin_share
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_admin_balance, admin_id)
+                )
+
+                # Deduct the 10% from singer's balance
+                new_singer_balance -= admin_share
+                cursor.execute(
+                    "UPDATE USERS SET balance = ? WHERE user_id = ?",
+                    (new_singer_balance, singer_id)
+                )
+
+                transaction_id = "".join(random.choices(string.ascii_letters + string.digits, k=12))
+                # Create a transaction record for the singer to admin transaction
+                cursor.execute(
+                    "INSERT INTO TRANSACTIONS (transaction_id, user_id, recipient_id, amount, date) VALUES (?, ?, ?, ?, ?)",
+                    (transaction_id, singer_id, admin_id, admin_share, date)
+                )
+
+                # Generate the ticket
+                cursor.execute(
+                    "INSERT INTO TICKETS (concert_id, user_id, ticket_price) VALUES (?, ?, ?)",
+                    (concert_id, user_id, price)
+                )
+
+                # Commit the transaction
+                connect.commit()
+                session["balance"] = new_balance
+                flash("Ticket successfully purchased.")
+                return redirect(url_for("user"))
+        except Exception as e:
+            logging.error(f"Error purchasing ticket: {e}")
+            flash("An error occurred while purchasing the ticket.")
+            return redirect(url_for("user"))
+    else:
+        return redirect(url_for("login"))
+
+@app.route("/create_playlist", methods=["GET", "POST"])
+def create_playlist():
+    if request.method == "POST":
+        if "user_id" in session:
+            user_id = session["user_id"]
+            playlist_name = request.form["playlist_name"]
+            genre = request.form["genre"]
+            is_private = request.form.get("is_private") == "on"
+
+            try:
+                with sqlite3.connect("database.db") as connect:
+                    cursor = connect.cursor()
+                    cursor.execute(
+                        "INSERT INTO playlists (creator_id, playlist_name, genre, is_private) VALUES (?, ?, ?, ?)",
+                        (user_id, playlist_name, genre, is_private),
+                    )
+                    connect.commit()
+                    flash("Playlist successfully created.")
+                    return redirect(url_for("create_playlist"))
+            except Exception as e:
+                logging.error(f"Error creating playlist: {e}")
+                flash("An error occurred while creating the playlist.")
+
+    if "user_id" in session:
+        user_id = session["user_id"]
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute(
+                    "SELECT playlist_id, playlist_name FROM playlists WHERE creator_id = ?",
+                    (user_id,)
+                )
+                playlists = cursor.fetchall()
+
+                def get_songs_in_playlist(playlist_id):
+                    cursor.execute(
+                        """
+                        SELECT songs.song_id, songs.name, songs.genre, songs.duration
+                        FROM songs
+                        INNER JOIN playlist_songs ON songs.song_id = playlist_songs.song_id
+                        WHERE playlist_songs.playlist_id = ?
+                        """,
+                        (playlist_id,)
+                    )
+                    return cursor.fetchall()
+
+            return render_template("create_playlist.html", playlists=playlists, get_songs_in_playlist=get_songs_in_playlist)
+
+        except Exception as e:
+            logging.error(f"Error fetching playlists: {e}")
+            flash("An error occurred while fetching playlists.")
+            return redirect(url_for("user"))
+
+    else:
+        flash("You are not authorized to access this page.")
+        return redirect(url_for("home_page"))
+
+
+@app.route("/add_song_to_playlist", methods=["POST"])
+def add_song_to_playlist():
+    if "user_id" in session:
+        playlist_id = request.form["playlist_id"]
+        song_id = request.form["song_id"]
+
+        try:
+            with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+                cursor.execute(
+                    "INSERT INTO playlist_songs (playlist_id, song_id) VALUES (?, ?)",
+                    (playlist_id, song_id)
+                )
+                connect.commit()
+                flash("Song successfully added to the playlist.")
+                return redirect(url_for("create_playlist"))
+
+        except Exception as e:
+            logging.error(f"Error adding song to playlist: {e}")
+            flash("An error occurred while adding the song to the playlist.")
+            return redirect(url_for("create_playlist"))
+
+    else:
+        flash("You are not authorized to access this page.")
+        return redirect(url_for("home_page"))
+
+
 @app.route('/follows', methods=['GET', 'POST'])
 def follows():
     # Connect to the SQLite database
@@ -780,6 +1126,7 @@ def follows():
 
     # Render the HTML template with the data
     return render_template('follows.html', followers=followers, following=following, all_users=all_users, following_set=following_set)
+
 
 
 if __name__ == "__main__":
