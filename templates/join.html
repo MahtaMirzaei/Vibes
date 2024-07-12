@@ -1,68 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}">
-    <title>Join</title>
-    <style>
-        body {
-            background-color: #1e1e1f; /* Dark background color */
-            color: #ffffff; /* White text color */
-        }
-        .form-label {
-            color: #ffffff; /* White label text color */
-        }
-        .btn-custom {
-            background-color: #9400d3; /* Purple button color */
-            color: #ffffff; /* White text color */
-            border: none;
-        }
-        .btn-custom:hover {
-            background-color: #7500a9; /* Darker purple on hover */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join</title>
+  <link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="{{ url_for('static', filename='Icon/favicon-32x32.png') }}"
+/>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Lobster&display=swap");
+
+    body {
+      background-color: #1e1e1f; /* Dark background color */
+      color: #ffffff; /* White text color */
+    }
+    .form-label {
+      color: #ffffff; /* White label text color */
+    }
+    .btn-custom {
+      background-color: #9400d3; /* Purple button color */
+      color: #ffffff; /* White text color */
+      border: none;
+    }
+    .btn-custom:hover {
+      background-color: #7500a9; /* Darker purple on hover */
+    }
+    .logo {
+      max-width: 100%; /* Ensure logo is responsive */
+    }
+    .platform-name {
+      font-family: "Lobster", cursive;
+      color: #9400d3; /* Purple color */
+      font-size: 3rem;
+      text-align: center;
+      font-size: 8.5rem;
+    }
+    .sign-up-link {
+      color: #9400d3; /* Purple link color */
+    }
+    .sign-up-link:hover {
+      color: #7500a9; /* Darker purple on hover */
+      text-decoration: none; /* Remove underline on hover */
+    }
+  </style>
 </head>
 <body class="bg-dark text-light">
-    <div class="container mt-4">
-        <h1 class="text-center">Join Us</h1>
-        <form method="post" action="{{ url_for('join') }}" class="mb-4">
-            <div class="form-group">
-                <label for="name" class="form-label">Name:</label>
-                <input type="text" name="name" class="form-control" required>
+  <div class="container">
+    <div class="row align-items-center">
+      <!-- Logo and App Name Section -->
+      <div class="col-md-6 mb-4 mt-5">
+          <div class="text-center">
+              <img src="{{ url_for('static', filename='android-chrome-512x512.png') }}" alt="Logo" class="logo mb-3">
             </div>
-            <div class="form-group">
-                <label for="email" class="form-label">Email:</label>
-                <input type="email" name="email" class="form-control" required>
+        </div>
+        
+        <!-- Join Form Section -->
+        <div class="col-md-6">
+          <div class="platform-name"> Join Vibes</div>
+        <form method="post" action="{{ url_for('join') }}">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="name" class="form-label">Name:</label>
+              <input type="text" name="name" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="city" class="form-label">City:</label>
-                <input type="text" name="city" class="form-control" required>
+            <div class="form-group col-md-6">
+              <label for="email" class="form-label">Email:</label>
+              <input type="email" name="email" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="country" class="form-label">Country:</label>
-                <input type="text" name="country" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="city" class="form-label">City:</label>
+              <input type="text" name="city" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="phone" class="form-label">Phone:</label>
-                <input type="text" name="phone" class="form-control" required>
+            <div class="form-group col-md-6">
+              <label for="country" class="form-label">Country:</label>
+              <input type="text" name="country" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="age" class="form-label">Age:</label>
-                <input type="number" name="age" class="form-control" min="9" max="120" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="phone" class="form-label">Phone:</label>
+              <input type="text" name="phone" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" name="password" class="form-control" required>
+            <div class="form-group col-md-6">
+              <label for="age" class="form-label">Age:</label>
+              <input type="number" name="age" class="form-control" min="9" max="120" required>
             </div>
-            <button type="submit" class="btn btn-custom">Join</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-12">
+              <label for="password" class="form-label">Password:</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-custom btn-block">Join</button>
         </form>
+        <div class="mt-3 text-center">
+          <span>Already have an account?</span>
+          <a href="{{ url_for('login') }}" class="sign-up-link">Log in</a>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
