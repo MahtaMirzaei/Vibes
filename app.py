@@ -180,6 +180,16 @@ BEGIN
 END;
 """)
         connect.execute(
+            """
+            CREATE TRIGGER IF NOT EXISTS remove_song_from_playlists
+            AFTER DELETE ON SONGS
+            FOR EACH ROW
+            BEGIN
+                DELETE FROM playlist_songs WHERE song_id = OLD.song_id;
+            END;
+            """
+        )
+        connect.execute(
         """CREATE TABLE IF NOT EXISTS playlist_songs (
     playlist_id INTEGER,
     song_id INTEGER,
