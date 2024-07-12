@@ -14,7 +14,19 @@ logging.basicConfig(level=logging.DEBUG)
 # Connect to the database and create the tables with the new schema
 with sqlite3.connect("database.db") as connect:
     connect.execute(
-    """
+        """
+        CREATE TABLE IF NOT EXISTS FOLLOWS (
+        user_id1 INTEGER,
+        user_id2 INTEGER,
+        PRIMARY KEY (user_id1, user_id2),
+        FOREIGN KEY (user_id1) REFERENCES users(user_id),
+        FOREIGN KEY (user_id2) REFERENCES users(user_id)
+
+        )
+"""
+    )
+    connect.execute(
+        """
     CREATE TABLE IF NOT EXISTS TICKETS (
     ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
     concert_id INTEGER,
@@ -111,19 +123,6 @@ with sqlite3.connect("database.db") as connect:
 
     connect.execute(
         """
-            CREATE TABLE IF NOT EXISTS PLAYLISTS (
-                playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                creator_id INTEGER,
-                playlist_name TEXT NOT NULL,
-                genre TEXT NOT NULL,
-                is_private BOOLEAN NOT NULL CHECK(is_private IN(0,1)),
-                FOREIGN KEY (creator_id) REFERENCES users(user_id)
-            )
-            """
-    )
-
-    connect.execute(
-        """
             CREATE TABLE IF NOT EXISTS song_likes (
             id SERIAL PRIMARY KEY,
             user_id TEXT,
@@ -134,8 +133,6 @@ with sqlite3.connect("database.db") as connect:
 );
             """
     )
-
-
 
     connect.execute(
         """CREATE TABLE IF NOT EXISTS playlists (
@@ -196,11 +193,23 @@ with sqlite3.connect("database.db") as connect:
     """
     )
     connect.execute(
+
         """
         INSERT OR IGNORE  INTO playlists (playlist_id, creator_id, playlist_name, genre, is_private)
         VALUES ('0', '1', 'kitty', 'haappy', 0 )
     """
     )
+    connect.execute(
+        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 2)")
+    connect.execute(
+        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (1, 'XC2XCb8n')")
+    connect.execute(
+        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (2, 1)")
+    connect.execute(
+        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', 1)")
+    connect.execute(
+        "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES ('LaLfDtue', '9hjeeqpj')")
+
 
 
 @app.route("/")
@@ -211,7 +220,8 @@ def index():
 @app.route("/join", methods=["GET", "POST"])
 def join():
     if request.method == "POST":
-        user_id = "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        user_id = "".join(random.choices(
+            string.ascii_letters + string.digits, k=8))
         name = request.form["name"]
         email = request.form["email"]
         city = request.form["city"]
@@ -269,7 +279,8 @@ def transfer():
                 sender_balance = cursor.fetchone()
 
                 cursor.execute(
-                    "SELECT balance FROM USERS WHERE user_id = ?", (recipient_id,)
+                    "SELECT balance FROM USERS WHERE user_id = ?", (
+                        recipient_id,)
                 )
                 recipient_balance = cursor.fetchone()
 
@@ -354,8 +365,6 @@ def login():
         return render_template("login.html")
 
 
-# like handling
-    
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
@@ -392,9 +401,9 @@ def search():
                 table_name = "albums"
                 columns = ["album_name", "album_artist", "genre", "release_date"]
             elif search_category == "playlist_name":
-                c.execute("SELECT a.name, u.name, a.genre, a.release_date FROM album a JOIN users u ON a.user_id = u.user_id WHERE u.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
-                table_name = "albums"
-                columns = ["album_name", "album_artist", "genre", "release_date"]
+                c.execute("SELECT playlist_name, genre FROM playlists WHERE playlist_name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                table_name = "playlists"
+                columns = ["playlist_name", "genre"]
 
             results = c.fetchall()
             conn.close()
@@ -410,8 +419,6 @@ def search():
             return "An error occurred while processing your search request. Please try again later."
 
     return render_template("search.html")
-
-
 
 
 @app.route("/user")
@@ -555,7 +562,8 @@ def premium():
 
                 # Update user's premium status
                 cursor.execute(
-                    "UPDATE USERS SET is_premium = 1 WHERE user_id = ?", (user_id,)
+                    "UPDATE USERS SET is_premium = 1 WHERE user_id = ?", (
+                        user_id,)
                 )
 
                 # Insert transaction records for user and admin
@@ -874,7 +882,6 @@ def artist_page():
         return redirect(url_for("user"))
 
 
-
 @app.route("/buy_ticket", methods=["POST"])
 def buy_ticket():
     if "user_id" in session:
@@ -1073,6 +1080,52 @@ def add_song_to_playlist():
     else:
         flash("You are not authorized to access this page.")
         return redirect(url_for("home_page"))
+
+
+@app.route('/follows', methods=['GET', 'POST'])
+def follows():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+
+    # Get the current user's ID
+    # Assuming the user's ID is stored in the session
+    current_user_id = session.get('user_id')
+
+    if request.method == 'POST':
+        # Check if the user wants to follow or unfollow someone
+        if 'user_id_to_follow' in request.form:
+            user_id_to_follow = request.form['user_id_to_follow']
+            # Insert the new follow relationship into the database
+            c.execute("INSERT INTO follows (user_id1, user_id2) VALUES (?, ?)",
+                      (current_user_id, user_id_to_follow))
+        elif 'user_id_to_unfollow' in request.form:
+            user_id_to_unfollow = request.form['user_id_to_unfollow']
+            # Remove the follow relationship from the database
+            c.execute("DELETE FROM follows WHERE user_id1 = ? AND user_id2 = ?",
+                      (current_user_id, user_id_to_unfollow))
+        conn.commit()
+
+    # Get the users that the current user is following
+    c.execute("SELECT user_id2 FROM follows WHERE user_id1 = ?",
+              (current_user_id,))
+    following = c.fetchall()
+
+    # Get the users that are following the current user
+    c.execute("SELECT user_id1 FROM follows WHERE user_id2 = ?",
+              (current_user_id,))
+    followers = c.fetchall()
+
+    # Get the list of all users
+    c.execute(
+        "SELECT DISTINCT user_id1 FROM follows UNION SELECT DISTINCT user_id2 FROM follows")
+    all_users = c.fetchall()
+
+    # Check which users the current user is following
+    following_set = set(follow[0] for follow in following)
+
+    # Render the HTML template with the data
+    return render_template('follows.html', followers=followers, following=following, all_users=all_users, following_set=following_set)
 
 
 
