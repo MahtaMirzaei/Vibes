@@ -1,82 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Playlist</title>
-    <style>
-        body {
-            background-color: #1e1e1f; /* Dark background color */
-            color: #ffffff; /* White text color */
-        }
-        .form-label, .form-check-label {
-            color: #ffffff; /* White label text color */
-        }
-        .btn-custom {
-            background-color: #9400d3; /* Purple button color */
-            color: #ffffff; /* White text color */
-            border: none;
-        }
-        .btn-custom:hover {
-            background-color: #7500a9; /* Darker purple on hover */
-        }
-        .playlist-container .playlist {
-            background-color: #2b2b2b; /* Darker grey for playlist container */
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-    </style>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="{{ url_for('static', filename='Icon/favicon-32x32.png') }}"
+/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Playlist</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Lobster&display=swap");
+    
+    body {
+      background-color: #1e1e1f; /* Dark background color */
+      color: #ffffff; /* White text color */
+    }
+    .form-label, .form-check-label {
+      color: #ffffff; /* White label text color */
+    }
+    .btn-custom {
+      background-color: #9400d3; /* Purple button color */
+      color: #ffffff; /* White text color */
+      border: none;
+    }
+    .btn-custom:hover {
+      background-color: #7500a9; /* Darker purple on hover */
+    }
+    .playlist-container .playlist {
+      background-color: #2b2b2b; /* Darker grey for playlist container */
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .playlist-container {
+      background-color: #2b2b2b; /* Darker grey for playlist container */
+      padding: 20px;
+      border-radius: 10px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .table {
+      border: 1px solid #ffffff; /* Border color for table */
+    }
+    .table thead th {
+      background-color: #70069d; /* Purple header */
+      color: #ffffff; /* White text color */
+    }
+    .table tbody tr {
+      background-color: #2b2b2b; /* Darker grey for table rows */
+      color: #ffffff; /* White text color */
+    }
+    .table tbody tr:nth-of-type(odd) {
+      background-color: #3a3a3a; /* Slightly lighter grey for odd rows */
+    }
+    .header-custom {
+      font-family: "Lobster", cursive;
+      color: #000000; /* Black color for headers */
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .create-playlist-section {
+      padding-right: 20px; /* Space on the right for spacing */
+    }
+  </style>
 </head>
 <body class="bg-dark text-light">
-    <div class="container mt-4">
-        <h1 class="text-center">Create Playlist</h1>
-
-        <form action="{{ url_for('create_playlist') }}" method="POST" class="mb-4">
-            <div class="form-group">
-                <label for="playlist_name" class="form-label">Playlist Name:</label>
-                <input type="text" id="playlist_name" name="playlist_name" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="genre" class="form-label">Genre:</label>
-                <input type="text" id="genre" name="genre" class="form-control" required>
-            </div>
-
-            <div class="form-group form-check">
-                <input type="checkbox" id="is_private" name="is_private" class="form-check-input">
-                <label for="is_private" class="form-check-label">Private:</label>
-            </div>
-
-            <button type="submit" class="btn btn-custom">Create Playlist</button>
-        </form>
-
-        <h2 class="text-center">Your Playlists</h2>
+  <div class="container-fluid mt-2" style="width: 80%;">
+    <div class="row">
+      <!-- User Playlists Section -->
+      <div class="col-md-7">
+        <h2 class="header-custom">Your Playlists</h2>
         <div class="playlist-container">
-            {% for playlist in playlists %}
-            <div class="playlist">
-                <h3>{{ playlist[1] }}</h3>
-                <ul class="list-unstyled">
-                    {% for song in get_songs_in_playlist(playlist[0]) %}
-                    <li>{{ song[1] }} - {{ song[2] }} - {{ song[3] }}</li>
-                    {% endfor %}
-                </ul>
-                <form action="{{ url_for('add_song_to_playlist') }}" method="POST" class="form-inline">
-                    <input type="hidden" name="playlist_id" value="{{ playlist[0] }}">
-                    <div class="form-group mr-2">
-                        <label for="song_id" class="sr-only">Add Song ID:</label>
-                        <input type="text" id="song_id" name="song_id" class="form-control" required placeholder="Song ID">
-                    </div>
-                    <button type="submit" class="btn btn-custom">Add Song to Playlist</button>
-                </form>
-            </div>
-            {% endfor %}
+          {% for playlist in playlists %}
+          <div class="playlist">
+            <h3>{{ playlist[1] }}</h3>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Song Title</th>
+                  <th>Artist</th>
+                  <th>Album</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for song in get_songs_in_playlist(playlist[0]) %}
+                <tr>
+                  <td>{{ song[1] }}</td>
+                  <td>{{ song[2] }}</td>
+                  <td>{{ song[3] }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <form action="{{ url_for('add_song_to_playlist') }}" method="POST" class="form-inline">
+              <input type="hidden" name="playlist_id" value="{{ playlist[0] }}">
+              <div class="form-group mr-2">
+                <label for="song_id" class="sr-only">Add Song ID:</label>
+                <input type="text" id="song_id" name="song_id" class="form-control" required placeholder="Song ID">
+              </div>
+              <button type="submit" class="btn btn-custom">Add Song to Playlist</button>
+            </form>
+          </div>
+          {% endfor %}
         </div>
+      </div>
+
+      <!-- Create Playlist Section -->
+      <div class="col-md-6 create-playlist-section">
+        <h1 class="header-custom">Create Playlist</h1>
+        <form action="{{ url_for('create_playlist') }}" method="POST" class="mb-5">
+          <div class="form-group">
+            <label for="playlist_name" class="form-label">Playlist Name:</label>
+            <input type="text" id="playlist_name" name="playlist_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="genre" class="form-label">Genre:</label>
+            <input type="text" id="genre" name="genre" class="form-control" required>
+          </div>
+          <div class="form-group form-check">
+            <input type="checkbox" id="is_private" name="is_private" class="form-check-input">
+            <label for="is_private" class="form-check-label">Private:</label>
+          </div>
+          <button type="submit" class="btn btn-custom btn-block">Create Playlist</button>
+        </form>
+      </div>
     </div>
+  </div>
 </body>
 </html>
