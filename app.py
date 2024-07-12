@@ -170,6 +170,15 @@ with sqlite3.connect("database.db") as connect:
 )
 """
     )
+        connect.execute("""
+CREATE TRIGGER IF NOT EXISTS delete_song_from_playlists
+AFTER UPDATE OF is_limited ON songs
+FOR EACH ROW
+WHEN NEW.is_limited = 1
+BEGIN
+    DELETE FROM playlist_songs WHERE song_id = NEW.song_id;
+END;
+""")
         connect.execute(
         """CREATE TABLE IF NOT EXISTS playlist_songs (
     playlist_id INTEGER,
@@ -1159,12 +1168,26 @@ def create_playlist():
 @app.route("/add_song_to_playlist", methods=["POST"])
 def add_song_to_playlist():
     if "user_id" in session:
+        user_id = session["user_id"]
         playlist_id = request.form["playlist_id"]
         song_id = request.form["song_id"]
 
         try:
             with sqlite3.connect("database.db") as connect:
                 cursor = connect.cursor()
+
+                # Check if the song is limited
+                cursor.execute(
+                    "SELECT is_limited FROM songs WHERE song_id = ?",
+                    (song_id,)
+                )
+                is_limited = cursor.fetchone()[0]
+
+                if is_limited:
+                    flash("Cannot add a limited song to the playlist.")
+                    return redirect(url_for("create_playlist"))
+
+                # Add the song to the playlist
                 cursor.execute(
                     "INSERT INTO playlist_songs (playlist_id, song_id) VALUES (?, ?)",
                     (playlist_id, song_id)
@@ -1179,9 +1202,8 @@ def add_song_to_playlist():
             return redirect(url_for("create_playlist"))
 
     else:
-        flash("You are not authorized to access this page.")
+        flash("You are not authorized to perform this action.")
         return redirect(url_for("home_page"))
-
 
 @app.route('/follows', methods=['GET', 'POST'])
 def follows():
