@@ -2,14 +2,27 @@
 <html lang="en">
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}">
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}"
+    />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Page</title>
     <style>
         body {
@@ -76,25 +89,57 @@
     </style>
 </head>
 <body>
-    <div class="main">
-        <div class="welcome">Welcome, {{ name }}!</div>
-        <div class="balance">Your Balance: {{ balance }}</div>
-        <div class="menu-buttons">
-            <button class="btn btn-custom" onclick="openNav()">Settings</button>
-            {% if is_premium %}
-                <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">Search</button>
-                <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">Follow</button>
-            {% endif %}
+    <div class="container-user">
+      <div class="left-column">
+        <div class="main">
+            <div class="welcome">Welcome, {{ name }}!</div>
+            <div class="balance">Your Balance: {{ balance }}</div>
+            <div class="menu-buttons">
+                <button class="btn btn-custom" onclick="openNav()">Settings</button>
+                {% if is_premium %}
+                    <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">Search</button>
+                    <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">Follow</button>
+                {% endif %}
+            </div>
         </div>
+      </div>
+
+      <div class="right-column">
+        <div class="block-1">
+          <h2>Suggested Songs</h2>
+          <hr class="main-hr">
+          <div class="song-list">
+            {% for name, artist_name in suggested_songs %}
+            <p>{{ name }}    {{ artist_name }}</p><hr class="sugestion-hr">
+            {% endfor %}
+          </div>
+        </div>
+        <div class="block-2">
+          <h2>Suggested Albums</h2>
+          <hr class="main-hr">
+          <div class="album-list">
+            {% for name, artist_name in suggested_albums %}
+            <p>{{ name }}    {{ artist_name }}</p><hr class="sugestion-hr">
+            {% endfor %}
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="mySidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <form method="post" action="{{ url_for('charge') }}" class="mb-2">
-            <label for="amount">Charge Account:</label>
-            <input type="number" name="amount" required class="form-control mb-2" />
-            <button type="submit" class="btn btn-custom">Charge</button>
-        </form>
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"
+        >&times;</a
+      >
+      <form method="post" action="{{ url_for('charge') }}" class="mb-2">
+        <label for="amount">Charge Account:</label>
+        <input type="number" name="amount" required class="form-control mb-2" />
+        <button type="submit" class="btn btn-custom">Charge</button>
+      </form>
+
+      <a href="{{ url_for('create_playlist') }}" class="btn btn-custom mb-2"
+        >Create New Playlist</a
+      >
+
         {% if is_artist %}
         <a href="{{ url_for('artist_page') }}" class="btn btn-custom mb-2">Artist Page</a>
         {% endif %}
@@ -153,16 +198,19 @@
     </div>
 
     <script>
-        function openNav() {
-            document.getElementById("mySidenav").style.width = "250px";
-        }
+      function openNav() {
+        document.getElementById("mySidenav").style.width = "250px";
+        document.querySelector(".main").style.marginLeft = "250px";
+      }
 
-        function closeNav() {
-            document.getElementById("mySidenav").style.width = "0";
-        }
-        function checkPremium() {
-            document.getElementById("premiumForm").style.display = "block";
-        }
+      function closeNav() {
+        document.getElementById("mySidenav").style.width = "0";
+        document.querySelector(".main").style.marginLeft = "0";
+      }
+
+      function checkPremium() {
+        document.getElementById("premiumForm").style.display = "block";
+      }
     </script>
-</body>
+  </body>
 </html>

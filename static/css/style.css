@@ -53,13 +53,13 @@ input {
   background-color: #d6d6d6bf;
 }
 
-hr {
-  width: 5rem;
+.main-hr {
+  width: 13rem;
   background-color: var(--border-in);
   border: none;
   height: 5px;
   border-radius: 1rem;
-  margin-left: 30px;
+  margin-left: 22px;
 }
 
 table {
@@ -71,6 +71,78 @@ th, td {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+}
+
+.left-column {
+  padding: 20px;
+}
+
+.right-column {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex-grow: 1;
+  height: 100vh;
+  
+}
+
+.container-user {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-gap: 20px;
+}
+
+.block-1 {
+  flex-direction: row;
+  justify-content: flex-start;
+  display: felx;
+  padding: 20px;
+  background-color: var(--background-main-card);
+
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+
+  border: 1px solid var(--border-in);
+  border-radius: 1.5rem;
+  box-shadow: var(--box-shadow-2);
+  
+}
+
+
+.block-2 {
+  flex-direction: row;
+  justify-content: flex-start;
+  display: felx;
+  padding: 20px;
+  background-color: var(--background-main-card);
+
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+
+  border: 1px solid var(--border-in);
+  border-radius: 1.5rem;
+  box-shadow: var(--box-shadow-2);
+  
+}
+
+
+.song-list, .album-list {
+  max-height: calc(50vh - 80px);
+  overflow-y: auto;
+} 
+
+.song-list p, .album-list p {
+  margin: 5px 0;
+  text-align: center;
+}
+
+.sugestion-hr {
+  width: 13rem;
+  background-color: var(--border-in);
+  border: none;
+  height: 1px;
+  border-radius: 1rem;
+  margin-left: 22px;
 }
 
 /* Header Vibes Style */
