@@ -488,9 +488,25 @@ def user():
                 (user_id,)
             )
             tickets = cursor.fetchall()
+            
+                        # Fetching unexpired tickets only
+            cursor.execute(
+                """
+                SELECT T.ticket_id, C.name, U.name AS singer_name, C.date, T.ticket_price 
+                FROM TICKETS T
+                JOIN concerts C ON T.concert_id = C.concert_id
+                JOIN USERS U ON C.user_id = U.user_id
+                WHERE T.user_id = ?
+                AND C.date < DATE('now')
+                """,
+                (user_id,)
+            )
+            etickets = cursor.fetchall()
+            
         except Exception as e:
             logging.error(f"Error fetching tickets: {e}")
             tickets = []
+            etickets =[]
             friendship_requests = []
 
         try:
@@ -564,6 +580,7 @@ def user():
             is_premium=is_premium,
             is_artist=is_artist,
             tickets=tickets,
+            etickets=etickets,
             suggested_songs=suggested_songs,
             suggested_albums=suggested_albums,
             friendship_requests=friendship_requests

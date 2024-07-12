@@ -177,7 +177,11 @@
                 <li>{{ ticket.name }} by {{ ticket.singer_name }} on {{ ticket.date }} - Price: {{ ticket.ticket_price }}</li>
             {% endfor %}
         </ul>
-
+        <ul class="btn-custom">
+          {% for eticket in etickets %}
+              <li>{{ eticket.name }} by {{ eticket.singer_name }} on {{ eticket.date }} - Price: {{ eticket.ticket_price }}</li>
+          {% endfor %}
+      </ul>
         <h2>Friendship Requests</h2>
         <ul>
             {% for request in friendship_requests %}
