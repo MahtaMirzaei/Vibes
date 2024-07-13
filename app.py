@@ -325,6 +325,12 @@ END;
     )
         connect.execute(
         """
+        INSERT OR IGNORE  INTO USERS (user_id, name, email, city, country, phone, age, password, balance, is_artist, is_premium)
+        VALUES (12, 'test', 't@mail.com' , 'Isfahan', 'Iran', 1212, 100, 123123, 99999999999, 1, 1)
+    """
+    )
+        connect.execute(
+        """
         INSERT OR IGNORE  INTO TRANSACTIONS (transaction_id, user_id, recipient_id, date, amount)
         VALUES ('0', '1', '2', '2/2/2', 1000 )
     """
