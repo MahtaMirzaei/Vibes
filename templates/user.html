@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <head>
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -25,192 +24,327 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Page</title>
     <style>
-        body {
-            background-color: #1e1e1f;
-            color: #ffffff;
-        }
-        .welcome {
-            color: #9400d3;
-            font-size: 3rem;
-            margin: 20px;
-        }
-        .balance {
-            font-size: 1.5rem;
-            margin: 20px;
-        }
-        .menu-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin: 20px;
-        }
-        .btn-custom {
-            background-color: #9400d3;
-            color: #ffffff;
-            border: none;
-        }
-        .btn-custom:hover {
-            background-color: #7500a9;
-        }
+      @import url("https://fonts.googleapis.com/css2?family=Lobster&display=swap");
+
+      body {
+        background-color: #1e1e1f;
+        color: #ffffff;
+        font-family: "Lobster", cursive;
+        margin: 0;
+        padding: 0;
+      }
+      .container-user {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin: 20px;
+      }
+      .left-column,
+      .right-column {
+        flex: 1;
+        margin: 10px;
+      }
+      .main {
+        padding: 10px;
+      }
+      .welcome-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .welcome {
+        color: #9400d3;
+        font-size: 3rem;
+      }
+      .menu-buttons {
+        display: flex;
+        align-items: center;
+      }
+      .menu-buttons .balance {
+        font-size: 1.5rem;
+        margin-right: 20px;
+      }
+      .btn-custom {
+        background-color: #9400d3;
+        color: #ffffff;
+        border: none;
+        margin: 5px 0;
+        font-family: 'Lobster', cursive;
+        width: 100%; /* Full width for buttons */
+    }
+      .btn-custom:hover {
+        background-color: #7500a9;
+      }
+      .block {
+        background-color: #333333;
+        padding: 10px;
+        margin-top: 20px;
+      }
+      .block h2 {
+        color: #ffffff;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+      }
+      .main-hr,
+      .suggestion-hr {
+        border-color: #9400d3;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .song-list,
+      .album-list {
+        margin-top: 10px;
+        color: #ffffff;
+      }
+      .sidenav {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        background-color: #111;
+        overflow-x: hidden;
+        transition: 0.5s;
+        padding-top: 60px;
+      }
+      .sidenav-right {
+        left: auto;
+        right: 0;
+      }
+      .sidenav a {
+        padding: 8px 8px 8px 32px;
+        text-decoration: none;
+        font-size: 25px;
+        color: #818181;
+        display: block;
+        transition: 0.3s;
+      }
+      .sidenav a:hover {
+        color: #f1f1f1;
+      }
+      .sidenav .closebtn {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        font-size: 36px;
+        margin-left: 50px;
+      }
+      .song-list,
+      .album-list,
+      .friendship-list,
+      .ticket-list {
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .block .btn-custom {
+        background-color: #90ee90;
+        color: #000000;
+        width: 100%;
+        margin-top: 10px;
+      }
+      .block .btn-custom:hover {
+        background-color: #6a3764;
+      }
+      .block .btn-success,
+      .block .btn-danger {
+        width: 48%;
+        margin: 1%;
+      }
+      .e {
+        background-color: #6a3764;
+      }
+      .v {
+        color: #90ee90;
+      }
+      @media screen and (max-height: 450px) {
         .sidenav {
-            height: 100%;
-            width: 0;
-            position: fixed;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            background-color: #111;
-            overflow-x: hidden;
-            transition: 0.5s;
-            padding-top: 60px;
+          padding-top: 15px;
         }
         .sidenav a {
-            padding: 8px 8px 8px 32px;
-            text-decoration: none;
-            font-size: 25px;
-            color: #818181;
-            display: block;
-            transition: 0.3s;
+          font-size: 18px;
         }
-        .sidenav a:hover {
-            color: #f1f1f1;
-        }
-        .sidenav .closebtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-        }
-        .main {
-            transition: margin-left .5s;
-            padding: 16px;
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container-user">
       <div class="left-column">
         <div class="main">
+          <div class="welcome-container">
             <div class="welcome">Welcome, {{ name }}!</div>
-            <div class="balance">Your Balance: {{ balance }}</div>
             <div class="menu-buttons">
-                <button class="btn btn-custom" onclick="openNav()">Settings</button>
-                {% if is_premium %}
-                    <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">Search</button>
-                    <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">Follow</button>
-                {% endif %}
+              <div class="balance">Your Balance: {{ balance }}</div>
+              <button class="btn btn-custom" onclick="openNav()">
+                Settings
+              </button>
+              {% if is_premium %}
+              <button
+                class="btn btn-custom"
+                onclick="location.href='{{ url_for('search') }}'"
+              >
+                Search
+              </button>
+              <button
+                class="btn btn-custom"
+                onclick="location.href='{{ url_for('follows') }}'"
+              >
+                Vibes Connect
+              </button>
+              <button class="btn btn-custom" onclick="openInbox()">
+                Inboxes
+              </button>
+              {% endif %}
             </div>
-        </div>
-      </div>
-
-      <div class="block-1">
-        <h2>Inbox</h2>
-        <hr class="main-hr">
-        <div class="song-list">
-            {% for notice in inbox_notices %}
-                <p>{{ notice.user_name }} {{ notice.action }}d {{ notice.item_name }} at {{ notice.date }}</p><hr class="sugestion-hr">
-            {% endfor %}
-        </div>
-      </div>
-
-      <div class="right-column">
-        <div class="block-1">
-          <h2>Suggested Songs</h2>
-          <hr class="main-hr">
-          <div class="song-list">
-            {% for name, artist_name in suggested_songs %}
-            <p>{{ name }}    {{ artist_name }}</p><hr class="sugestion-hr">
-            {% endfor %}
           </div>
-        </div>
-        <div class="block-2">
-          <h2>Suggested Albums</h2>
-          <hr class="main-hr">
-          <div class="album-list">
-            {% for name, artist_name in suggested_albums %}
-            <p>{{ name }}    {{ artist_name }}</p><hr class="sugestion-hr">
-            {% endfor %}
+          <div class="block">
+            <h2>Suggested Songs</h2>
+            <hr class="main-hr" />
+            <div class="song-list">
+              {% for name, artist_name in suggested_songs %}
+              <p>{{ name }} {{ artist_name }}</p>
+              <hr class="suggestion-hr" />
+              {% endfor %}
+            </div>
+          </div>
+          <div class="block">
+            <h2>Suggested Albums</h2>
+            <hr class="main-hr" />
+            <div class="album-list">
+              {% for name, artist_name in suggested_albums %}
+              <p>{{ name }} {{ artist_name }}</p>
+              <hr class="suggestion-hr" />
+              {% endfor %}
+            </div>
           </div>
         </div>
       </div>
     </div>
-    
-    
- 
+
     <div id="mySidenav" class="sidenav">
       <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"
         >&times;</a
       >
+      {% if is_artist %}
+      <a href="{{ url_for('artist_page') }}" class="btn btn-custom mb-2"
+        >Artist Page</a
+      >
+      {% endif %} {% if is_premium %}
+      <a href="{{ url_for('create_playlist') }}" class="btn btn-custom mb-2"
+        >Create New Playlist</a
+      >
+      {% endif %}
       <form method="post" action="{{ url_for('charge') }}" class="mb-2">
         <label for="amount">Charge Account:</label>
         <input type="number" name="amount" required class="form-control mb-2" />
         <button type="submit" class="btn btn-custom">Charge</button>
       </form>
 
-
-        {% if is_artist %}
-        <a href="{{ url_for('artist_page') }}" class="btn btn-custom mb-2">Artist Page</a>
-        {% endif %}
-        {% if not is_premium %}
-        <button class="btn btn-custom mb-2" onclick="checkPremium()">Get Premium</button>
-        <div id="premiumForm" style="display: none;">
-            {% if balance >= 1000 %}
-            <p>Are you certain to purchase premium?</p>
-            <form method="post" action="{{ url_for('premium') }}">
-                <button type="submit" class="btn btn-custom mb-2">Proceed</button>
-            </form>
-            <button class="btn btn-custom mb-2" onclick="document.getElementById('premiumForm').style.display='none'">No</button>
-            {% else %}
-            <p>You don't have enough credit, please charge first.</p>
-            {% endif %}
-        </div>
-        {% endif %}
-        {% if is_premium %}
-        <a href="{{ url_for('create_playlist') }}" class="btn btn-custom mb-2"
-        >Create New Playlist</a
-      >
-        <form method="post" action="{{ url_for('buy_ticket') }}" class="mb-2">
-            <label for="concert_id">Concert ID:</label>
-            <input type="number" name="concert_id" required class="form-control mb-2" />
-            <button type="submit" class="btn btn-custom">Buy Ticket</button>
+      {% if not is_premium %}
+      <button class="btn btn-custom mb-2" onclick="checkPremium()">
+        Get Premium
+      </button>
+      <div id="premiumForm" style="display: none">
+        {% if balance >= 1000 %}
+        <p>Are you certain to purchase premium?</p>
+        <form method="post" action="{{ url_for('premium') }}">
+          <button type="submit" class="btn btn-custom mb-2">Proceed</button>
         </form>
+        <button
+          class="btn btn-custom mb-2"
+          onclick="document.getElementById('premiumForm').style.display='none'"
+        >
+          No
+        </button>
+        {% else %}
+        <p>You don't have enough credit, please charge first.</p>
         {% endif %}
-        <form action="{{ url_for('logout') }}" method="post" class="mb-2">
-            <button type="submit" class="btn btn-custom">Logout</button>
-        </form>
+      </div>
+      {% endif %} {% if is_premium %}
+      <form method="post" action="{{ url_for('buy_ticket') }}" class="mb-2">
+        <label for="concert_id">Concert ID:</label>
+        <input
+          type="number"
+          name="concert_id"
+          required
+          class="form-control mb-2"
+        />
+        <button type="submit" class="btn btn-custom">Buy Ticket</button>
+      </form>
+      {% endif %}
+      <form action="{{ url_for('logout') }}" method="post" class="mb-2">
+        <button type="submit" class="btn btn-custom">Logout</button>
+      </form>
     </div>
 
-    <div class="main">
-        {% if is_premium %}
-        <h2>Tickets</h2>
-        <ul>
-            {% for ticket in tickets %}
-                <li>{{ ticket.name }} by {{ ticket.singer_name }} on {{ ticket.date }} - Price: {{ ticket.ticket_price }}</li>
-            {% endfor %}
-        </ul>
-        <ul class="btn-custom">
-          {% for eticket in etickets %}
-              <li>{{ eticket.name }} by {{ eticket.singer_name }} on {{ eticket.date }} - Price: {{ eticket.ticket_price }}</li>
+    <div id="myInbox" class="sidenav sidenav-right">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeInbox()"
+        >&times;</a
+      >
+      <div class="block">
+        <h2>Inbox</h2>
+        <hr class="main-hr" />
+        <div class="song-list">
+          {% for notice in inbox_notices %}
+          <p>
+            {{ notice.user_name }} {{ notice.action }}d {{ notice.item_name }}
+            at {{ notice.date }}
+          </p>
+          <hr class="suggestion-hr" />
           {% endfor %}
-      </ul>
-        <h2>Friendship Requests</h2>
-        <ul>
-            {% for request in friendship_requests %}
-                <li>
-                    From: {{ request.sender_id }} ({{ request.sender_email }})
-                    <form method="post" action="{{ url_for('accept_friendship_request') }}" style="display: inline;">
-                        <input type="hidden" name="sender_id" value="{{ request.sender_id }}">
-                        <button type="submit" class="btn btn-success">Accept</button>
-                    </form>
-                    <form method="post" action="{{ url_for('decline_friendship_request') }}" style="display: inline;">
-                        <input type="hidden" name="sender_id" value="{{ request.sender_id }}">
-                        <button type="submit" class="btn btn-danger">Decline</button>
-                    </form>
-                </li>
-            {% endfor %}
+        </div>
+      </div>
+      <div class="block">
+        <h2>Tickets</h2>
+        <ul class="ticket-list">
+          {% for ticket in tickets %}
+          <li class="v">
+            {{ ticket.name }} by {{ ticket.singer_name }} on {{ ticket.date }} -
+            Price: {{ ticket.ticket_price }}
+          </li>
+          {% endfor %} {% for eticket in etickets %}
+          <li class="e">
+            {{ eticket.name }} by {{ eticket.singer_name }} on {{ eticket.date
+            }} - Price: {{ eticket.ticket_price }}
+          </li>
+          {% endfor %}
         </ul>
-        {% endif %}
+      </div>
+      <div class="block">
+        <h2>Friendship Requests</h2>
+        <ul class="friendship-list">
+          {% for request in friendship_requests %}
+          <li>
+            From: {{ request.sender_id }} ({{ request.sender_email }})
+            <form
+              method="post"
+              action="{{ url_for('accept_friendship_request') }}"
+              style="display: inline"
+            >
+              <input
+                type="hidden"
+                name="sender_id"
+                value="{{ request.sender_id }}"
+              />
+              <button type="submit" class="btn btn-success">Accept</button>
+            </form>
+            <form
+              method="post"
+              action="{{ url_for('decline_friendship_request') }}"
+              style="display: inline"
+            >
+              <input
+                type="hidden"
+                name="sender_id"
+                value="{{ request.sender_id }}"
+              />
+              <button type="submit" class="btn btn-danger">Decline</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
 
     <script>
@@ -222,6 +356,16 @@
       function closeNav() {
         document.getElementById("mySidenav").style.width = "0";
         document.querySelector(".main").style.marginLeft = "0";
+      }
+
+      function openInbox() {
+        document.getElementById("myInbox").style.width = "250px";
+        document.querySelector(".main").style.marginRight = "250px";
+      }
+
+      function closeInbox() {
+        document.getElementById("myInbox").style.width = "0";
+        document.querySelector(".main").style.marginRight = "0";
       }
 
       function checkPremium() {
