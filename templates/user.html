@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -60,6 +62,24 @@
       .menu-buttons {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+      }
+      
+      .menu-buttons button {
+      margin: 0 10px; 
+      }
+
+      .menu-buttons button:active {
+      background-color: #7500a9;
+      }
+
+      .menu-buttons .material-symbols-outlined {
+      font-size: 24px;
+      color: #ffffff; 
+      }
+
+      .menu-buttons .material-symbols-outlined:active {
+      color: #9400d3; 
       }
       .menu-buttons .balance {
         font-size: 1.5rem;
@@ -177,23 +197,17 @@
             <div class="menu-buttons">
               <div class="balance">Your Balance: {{ balance }}</div>
               <button class="btn btn-custom" onclick="openNav()">
-                Settings
+                <span class="material-symbols-outlined">settings</span>
               </button>
               {% if is_premium %}
-              <button
-                class="btn btn-custom"
-                onclick="location.href='{{ url_for('search') }}'"
-              >
-                Search
+              <button class="btn btn-custom" onclick="location.href='{{ url_for('search') }}'">
+                <span class="material-symbols-outlined">search</span>
               </button>
-              <button
-                class="btn btn-custom"
-                onclick="location.href='{{ url_for('follows') }}'"
-              >
-                VibesConnect
+              <button class="btn btn-custom" onclick="location.href='{{ url_for('follows') }}'">
+                <span class="material-symbols-outlined">send</span>
               </button>
               <button class="btn btn-custom" onclick="openInbox()">
-                Inboxes
+                <span class="material-symbols-outlined">mail</span>
               </button>
               {% endif %}
             </div>
