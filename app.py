@@ -2203,25 +2203,26 @@ def comment():
 
         if song_id:
             song_comments = c.execute(
-                "SELECT * FROM song_comments WHERE song_id = ?", (song_id,)).fetchall()
+                "SELECT u.name, sc.comment FROM song_comments sc JOIN USERS u ON sc.user_id = u.user_id WHERE sc.song_id = ?", (song_id,)).fetchall()
             playlist_comments = []
             album_comments = []
         elif playlist_id:
-            song_comments = []
             playlist_comments = c.execute(
-                "SELECT * FROM playlist_comments WHERE playlist_id = ?", (playlist_id,)).fetchall()
+                "SELECT u.name, pc.comment FROM playlist_comments pc JOIN USERS u ON pc.user_id = u.user_id WHERE pc.playlist_id = ?", (playlist_id,)).fetchall()
+            song_comments = []
             album_comments = []
         elif album_id:
+            album_comments = c.execute(
+                "SELECT u.name, ac.comment FROM album_comments ac JOIN USERS u ON ac.user_id = u.user_id WHERE ac.album_id = ?", (album_id,)).fetchall()
             song_comments = []
             playlist_comments = []
-            album_comments = c.execute(
-                "SELECT * FROM album_comments WHERE album_id = ?", (album_id,)).fetchall()
         else:
-            song_comments = c.execute("SELECT * FROM song_comments").fetchall()
+            song_comments = c.execute(
+                "SELECT u.name, sc.comment FROM song_comments sc JOIN USERS u ON sc.user_id = u.user_id").fetchall()
             playlist_comments = c.execute(
-                "SELECT * FROM playlist_comments").fetchall()
+                "SELECT u.name, pc.comment FROM playlist_comments pc JOIN USERS u ON pc.user_id = u.user_id").fetchall()
             album_comments = c.execute(
-                "SELECT * FROM album_comments").fetchall()
+                "SELECT u.name, ac.comment FROM album_comments ac JOIN USERS u ON ac.user_id = u.user_id").fetchall()
 
         conn.close()
 
@@ -2229,6 +2230,7 @@ def comment():
     except sqlite3.Error as e:
         logging.error(f"An error occurred while fetching the comments: {e}")
         return "An error occurred while fetching the comments. Please try again later."
+
 
 
 
