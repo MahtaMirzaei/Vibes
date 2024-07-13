@@ -607,22 +607,58 @@ def search():
             user_id = session["user_id"]
 
             if search_category == "song_name":
-                c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ? WHERE s.name LIKE ? ", (user_id, user_id, "%"+search_input+"%"))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE s.name LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
                 columns = ["song_id", "song_name", "artist",
                            "age", "genre", "is_liked", "is_favorite"]
             elif search_category == "artist":
-                c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ? WHERE u.name LIKE ? ", (user_id, user_id, "%"+search_input+"%"))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE u.name LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
                 columns = ["song_id", "song_name", "artist",
                            "age", "genre", "is_liked", "is_favorite"]
             elif search_category == "age":
-                c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ? WHERE s.age_rating LIKE ? ", (user_id, user_id, "%"+search_input+"%"))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE s.age_rating LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
                 columns = ["song_id", "song_name", "artist",
                            "age", "genre", "is_liked", "is_favorite"]
             elif search_category == "genre":
-                c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ? WHERE s.genre LIKE ? ", (user_id, user_id, "%"+search_input+"%"))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE s.genre LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
                 columns = ["song_id", "song_name", "artist",
                            "age", "genre", "is_liked", "is_favorite"]
@@ -637,7 +673,17 @@ def search():
                 columns = ["album_id", "album_name", "album_artist",
                            "genre", "release_date", "is_liked", "is_favorite"]
             elif search_category == "playlist_name":
-                c.execute("SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM playlists p JOIN users u ON p.creator_id = u.user_id LEFT JOIN playlist_likes sl ON p.playlist_id = sl.playlist_id AND sl.user_id = ? LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ? WHERE p.playlist_name LIKE ? ", (user_id, user_id, "%"+search_input+"%"))
+                c.execute("""SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                FROM playlists p
+                JOIN users u ON p.creator_id = u.user_id
+                LEFT JOIN friends f ON p.creator_id = f.friend_id AND f.user_id = ?
+                LEFT JOIN playlist_likes sl ON p.playlist_id = sl.playlist_id AND sl.user_id = ?
+                LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                WHERE p.is_private = 0 or (f.user_id IS NOT NULL OR p.creator_id = ?)
+                AND p.playlist_name LIKE ?
+                """, (user_id, user_id, user_id, user_id, "%"+search_input+"%"))
                 table_name = "playlists"
                 columns = ["playlist_id", "playlist_name",
                            "genre", "is_liked", "is_favorite"]
@@ -660,6 +706,8 @@ def search():
 
 
 
+
+
 @app.route("/like_song/<int:song_id>", methods=["POST"])
 def like_song(song_id):
     user_id = session["user_id"]
@@ -678,7 +726,16 @@ def like_song(song_id):
         conn.commit()
 
         # Fetch the updated search results
-        c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?", (user_id, user_id))
+        c.execute("""
+            SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+            FROM songs s 
+            JOIN users u ON s.user_id = u.user_id
+            LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+            LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+            WHERE s.is_limited = 0
+        """, (user_id, user_id))
         song_results = c.fetchall()
         song_data = [dict(zip(["song_id", "song_name", "artist",
                                "age", "genre", "is_liked", "is_favorite"], row)) for row in song_results]
@@ -744,7 +801,6 @@ def like_album(album_id):
             c.execute(
                 "INSERT INTO album_likes (user_id, album_id) VALUES (?, ?)", (user_id, album_id))
         conn.commit()
-
 
         c.execute("SELECT DISTINCT a.album_id, a.name, u.name AS album_artist, a.genre, a.release_date,  CASE WHEN al.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN af.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM album a JOIN users u ON a.user_id = u.user_id LEFT JOIN album_favorite af ON a.album_id = af.album_id AND af.user_id = ? LEFT JOIN album_likes al ON a.album_id = al.album_id AND al.user_id = ? ", (user_id, user_id))
         album_results = c.fetchall()
@@ -812,10 +868,21 @@ def like_playlist(playlist_id):
                 "INSERT INTO playlist_likes (user_id, playlist_id) VALUES (?, ?)", (user_id, playlist_id))
         conn.commit()
 
-        c.execute("SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite, CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked FROM playlists p LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ? LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ? ", (user_id, user_id))
-        playlist_results = c.fetchall()
-        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre", "is_favorite", "is_liked"], row)) for row in playlist_results]
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked
+                    FROM playlists p
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    LEFT JOIN friends f ON p.creator_id = f.friend_id AND f.user_id = ?
+                    LEFT JOIN users u ON p.creator_id = u.user_id
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR f.user_id IS NOT NULL) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
 
+        playlist_results = c.fetchall()
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_favorite", "is_liked"], row)) for row in playlist_results]
 
         conn.close()
 
@@ -845,9 +912,21 @@ def dislike_playlist(playlist_id):
                 "INSERT INTO playlist_likes (user_id, playlist_id) VALUES (?, ?)", (user_id, playlist_id))
         conn.commit()
 
-        c.execute("SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite, CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked FROM playlists p LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ? LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ? ", (user_id, user_id))
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked
+                    FROM playlists p
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    LEFT JOIN friends f ON p.creator_id = f.friend_id AND f.user_id = ?
+                    LEFT JOIN users u ON p.creator_id = u.user_id
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR f.user_id IS NOT NULL) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
+
         playlist_results = c.fetchall()
-        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre", "is_favorite", "is_liked"], row)) for row in playlist_results]
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_favorite", "is_liked"], row)) for row in playlist_results]
 
         conn.close()
 
@@ -878,7 +957,16 @@ def favorite_song(song_id):
         conn.commit()
 
         # Fetch the updated search results
-        c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?", (user_id, user_id))
+        c.execute("""
+            SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+            FROM songs s 
+            JOIN users u ON s.user_id = u.user_id
+            LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+            LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+            WHERE s.is_limited = 0
+        """, (user_id, user_id))
         song_results = c.fetchall()
         song_data = [dict(zip(["song_id", "song_name", "artist",
                                "age", "genre", "is_liked", "is_favorite"], row)) for row in song_results]
@@ -961,7 +1049,6 @@ def favorite_album(album_id):
         return "An error occurred while processing your favorite request. Please try again later."
 
 
-
 @app.route("/disfavorite_album/<int:album_id>", methods=["POST"])
 def disfavorite_album(album_id):
     user_id = session["user_id"]
@@ -1013,9 +1100,22 @@ def favorite_playlist(playlist_id):
 
         conn.commit()
 
-        c.execute("SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked,  CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM playlists p JOIN users u ON p.creator_id = u.user_id LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ? LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ? ", (user_id, user_id))
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked,
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM playlists p
+                    JOIN users u ON p.creator_id = u.user_id
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR p.creator_id IN (
+                        SELECT friend_id FROM friends WHERE user_id = ?
+                    )) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
+
         playlist_results = c.fetchall()
-        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre","is_liked", "is_favorite"], row)) for row in playlist_results]
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_liked", "is_favorite"], row)) for row in playlist_results]
 
         conn.close()
 
@@ -1046,10 +1146,21 @@ def disfavorite_playlist(playlist_id):
 
         conn.commit()
 
-        c.execute("SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked,  CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM playlists p JOIN users u ON p.creator_id = u.user_id LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ? LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ? ", (user_id,user_id))
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked,
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM playlists p
+                    JOIN users u ON p.creator_id = u.user_id
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR p.creator_id IN (
+                        SELECT friend_id FROM friends WHERE user_id = ?
+                    )) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
         playlist_results = c.fetchall()
-        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre","is_liked", "is_favorite"], row)) for row in playlist_results]
-
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_liked", "is_favorite"], row)) for row in playlist_results]
 
         conn.close()
 
@@ -1062,11 +1173,11 @@ def disfavorite_playlist(playlist_id):
         return "An error occurred while processing your favorite request. Please try again later."
 
 
-
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
+
 
 @app.route("/user")
 def user():
@@ -2075,6 +2186,74 @@ def send_message():
         print(f"Error: {e}")
     finally:
         conn.close()
+
+
+@app.route('/comment', methods=['GET', 'POST'])
+def comment():
+    song_id = request.args.get('song_id', None)
+    playlist_id = request.args.get('playlist_id', None)
+    album_id = request.args.get('album_id', None)
+
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        comment_text = request.form['comment']
+
+        try:
+            conn = sqlite3.connect('database.db')
+            c = conn.cursor()
+
+            if song_id:
+                c.execute("INSERT INTO song_comments (user_id, song_id, comment) VALUES (?, ?, ?)",
+                          (user_id, song_id, comment_text))
+            elif playlist_id:
+                c.execute("INSERT INTO playlist_comments (user_id, playlist_id, comment) VALUES (?, ?, ?)",
+                          (user_id, playlist_id, comment_text))
+            elif album_id:
+                c.execute("INSERT INTO album_comments (user_id, album_id, comment) VALUES (?, ?, ?)",
+                          (user_id, album_id, comment_text))
+
+            conn.commit()
+            conn.close()
+
+            return redirect(url_for('comment', song_id=song_id, playlist_id=playlist_id, album_id=album_id))
+        except sqlite3.Error as e:
+            logging.error(f"An error occurred while saving the comment: {e}")
+            return "An error occurred while saving your comment. Please try again later."
+
+    try:
+        conn = sqlite3.connect('database.db')
+        c = conn.cursor()
+
+        if song_id:
+            song_comments = c.execute(
+                "SELECT * FROM song_comments WHERE song_id = ?", (song_id,)).fetchall()
+            playlist_comments = []
+            album_comments = []
+        elif playlist_id:
+            song_comments = []
+            playlist_comments = c.execute(
+                "SELECT * FROM playlist_comments WHERE playlist_id = ?", (playlist_id,)).fetchall()
+            album_comments = []
+        elif album_id:
+            song_comments = []
+            playlist_comments = []
+            album_comments = c.execute(
+                "SELECT * FROM album_comments WHERE album_id = ?", (album_id,)).fetchall()
+        else:
+            song_comments = c.execute("SELECT * FROM song_comments").fetchall()
+            playlist_comments = c.execute(
+                "SELECT * FROM playlist_comments").fetchall()
+            album_comments = c.execute(
+                "SELECT * FROM album_comments").fetchall()
+
+        conn.close()
+
+        return render_template('comment.html', song_comments=song_comments, playlist_comments=playlist_comments, album_comments=album_comments, user_id=session['user_id'], song_id=song_id, playlist_id=playlist_id, album_id=album_id)
+    except sqlite3.Error as e:
+        logging.error(f"An error occurred while fetching the comments: {e}")
+        return "An error occurred while fetching the comments. Please try again later."
+
+
 
     return redirect(url_for('chat', friend_id=receiver_id))
 if __name__ == "__main__":

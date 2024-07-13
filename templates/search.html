@@ -224,7 +224,13 @@
               {% endif %}
             </td>
             {% endif %}
-            
+            <td>
+            <a href="{{ url_for('comment', song_id=item['song_id'], album_id=item['album_id'], playlist_id=item['playlist_id']) }}">
+                <button>Comment</button>
+            </a>
+        </td>
+
+
           </tr>
           {% endfor %} {% else %}
           <tr>

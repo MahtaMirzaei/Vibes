@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Comment Page</title>
+    <style>
+      /* CSS styles go here */
+      .comment-section {
+        margin-bottom: 20px;
+      }
+      .comment-box {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .comment-box p {
+        margin: 0;
+      }
+      .comment-box .user {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Comment Page</h1>
+
+    <div class="comment-section">
+      <h2>Previous Comments</h2>
+      {% if song_id %} {% for comment in song_comments %}
+      <div class="comment-box">
+        <p class="user">{{ comment[1] }}</p>
+        <p>{{ comment[3] }}</p>
+      </div>
+      {% endfor %} {% elif playlist_id %} {% for comment in playlist_comments %}
+      <div class="comment-box">
+        <p class="user">{{ comment[1] }}</p>
+        <p>{{ comment[3] }}</p>
+      </div>
+      {% endfor %} {% elif album_id %} {% for comment in album_comments %}
+      <div class="comment-box">
+        <p class="user">{{ comment[1] }}</p>
+        <p>{{ comment[3] }}</p>
+      </div>
+      {% endfor %} {% else %}
+      <p>No comments found.</p>
+      {% endif %}
+    </div>
+
+    <div class="comment-section">
+      <h2>Add New Comment</h2>
+      <form method="post">
+        <input type="hidden" name="user_id" value="{{ user_id }}" />
+        {% if song_id %}
+        <input type="hidden" name="song_id" value="{{ song_id }}" />
+        {% elif playlist_id %}
+        <input type="hidden" name="playlist_id" value="{{ playlist_id }}" />
+        {% elif album_id %}
+        <input type="hidden" name="album_id" value="{{ album_id }}" />
+        {% endif %}
+        <textarea name="comment" placeholder="Enter your comment"></textarea>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </body>
+</html>
