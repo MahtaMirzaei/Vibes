@@ -670,11 +670,11 @@ def artist_page():
             action = request.form["action"]
 
             if action == "add_concert":
-                name = request.form["name"]
-                date = request.form["date"]
-                price = request.form["price"]
-                ticket_number = request.form["ticket_number"]
-
+                name = request.form.get("name")
+                date = request.form.get("date")
+                price = request.form.get("price")
+                ticket_number = request.form.get("tickets")  # Make sure this matches your HTML input name
+    
                 try:
                     with sqlite3.connect("database.db") as connect:
                         cursor = connect.cursor()
