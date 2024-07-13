@@ -1,274 +1,260 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>Vibes Connect</title>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='Icon/favicon-32x32.png') }}" />
     <style>
-      body {
-        background-color: #1e1e1f;
-        color: #ffffff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 5px;
-      }
+        @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
 
-      h1,
-      h2,
-      h3 {
-        color: #9400d3;
-      }
+        body {
+            background-color: #1e1e1f;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
 
-      .btn-custom {
-        background-color: #9400d3;
-        color: #ffffff;
-        border: none;
-        padding: 8px 16px;
-        margin-right: 5px;
-      }
+        h1,
+        h2,
+        h3 {
+            color: #9400d3;
+            font-family: 'Lobster', cursive;
+        }
 
-      .btn-custom:hover {
-        background-color: #7500a9;
-      }
+        .btn-custom,
+        .btn-requested {
+            background-color: #9400d3;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            margin: 8px 0;
+            border-radius: 8px;
+            width: 80px;
+            font-size: 18px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-      table {
-        width: 100%;
-        margin-bottom: 20px;
-        border-collapse: collapse;
-      }
+        .btn-custom:hover {
+            background-color: #7500a9;
+        }
 
-      th,
-      td {
-        border: 1px solid #9400d3;
-        padding: 10px;
-        text-align: left;
-      }
+        table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
 
-      th {
-        background-color: #7500a9;
-      }
+        th,
+        td {
+            border: 1px solid #7d4e57; /* slightly darker purple */
+            padding: 12px;
+            text-align: left;
+        }
 
-      .btn-requested {
-        background-color: #6c757d;
-        color: #ffffff;
-        border: none;
-      }
+        th {
+            background-color: #6a3764; /* slightly darker purple */
+            color: #ffffff;
+        }
 
-      .btn-requested:hover {
-        background-color: #5a6268;
-      }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #7d4e57; /* slightly darker purple */
+            margin-bottom: 30px; /* added spacing between tables */
+        }
+
+        .table th:first-child,
+        .table td:first-child {
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+
+        .table th:last-child,
+        .table td:last-child {
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .btn-requested {
+            background-color: #6c757d;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 8px 0;
+            width: 80px;
+            text-align: center;
+        }
+
+        .btn-requested:hover {
+            background-color: #5a6268;
+        }
+
+        .title {
+            color: #90ee90;
+            font-size: 3em; /* bigger font size for title */
+            text-align: center; /* center align title */
+            margin-bottom: 20px; /* added margin bottom for title */
+        }
+
+        .grid-item {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            border-radius: 5px;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <h1>Vibes</h1>
-      <h2>Friends</h2>
-      <table class="table table-dark">
-        {% if friends %}
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for friend in friends %}
-          <tr>
-            <td>{{ friend[1] }}</td>
-            <td>
-              <form action="{{ url_for('chat') }}" method="get">
-                <input type="hidden" name="friend_id" value="{{ friend[0] }}">
-                <button type="submit" class="btn btn-primary btn-custom">Chat</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <h1 class="title">Vibes Connect</h1>
+        <h2>Friends</h2>
+        <table class="table table-dark">
+            {% if friends %}
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for friend in friends %}
+                <tr>
+                    <td>{{ friend[1] }}</td>
+                    <td>
+                        <form action="{{ url_for('chat') }}" method="get">
+                            <input type="hidden" name="friend_id" value="{{ friend[0] }}">
+                            <button type="submit" class="btn btn-primary btn-custom">Chat</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% else %}
+            <p>You have no friends yet.</p>
+            {% endif %}
+        </table>
+
+        <h2>Followers</h2>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for follower in followers %}
+                <tr>
+                    <td>{{ follower[0] }}</td>
+                    <td>{{ follower[1] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Following</h2>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for follow in following %}
+                <tr>
+                    <td>{{ follow[0] }}</td>
+                    <td>{{ follow[1] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Pending Friendship Requests</h3>
+        {% if pending_requests %}
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in pending_requests %}
+                <tr>
+                    <td>{{ request[1] }}</td>
+                    <td>
+                        <form action="{{ url_for('accept_friendship_request') }}" method="post">
+                            <input type="hidden" name="sender_id" value="{{ request[0] }}" />
+                            <button type="submit" class="btn btn-success btn-requested">Accept</button>
+                        </form>
+                        <form action="{{ url_for('decline_friendship_request') }}" method="post">
+                            <input type="hidden" name="sender_id" value="{{ request[0] }}" />
+                            <button type="submit" class="btn btn-danger btn-requested">Decline</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% else %}
-        <p>You have no friends yet.</p>
+        <p>No pending friendship requests.</p>
         {% endif %}
-      </table>
-      
 
-      <h2>Followers</h2>
-      <table class="table table-dark">
-        <thead>
-          <tr>
-            <th>User ID</th>
-            <th>Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for follower in followers %}
-          <tr>
-            <td>{{ follower[0] }}</td>
-            <td>{{ follower[1] }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <h3>All Premium Users</h3>
+        {% if all_users %}
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                <tr>
+                    <td>{{ user[1] }}</td>
+                    <td>
+                        {% if user[0] in friends_set %}
+                        <button disabled class="btn btn-secondary btn-requested">Friend</button>
+                        {% elif user[0] in pending_requests %}
+                        <button disabled class="btn btn-warning btn-requested">Requested</button>
+                        {% else %}
+                        <form action="{{ url_for('send_friendship_request') }}" method="post" class="friend-request-form" data-user-id="{{ user[0] }}">
+                            <input type="hidden" name="friend_id" value="{{ user[0] }}" />
+                            <button type="submit" class="btn btn-primary btn-requested">Request</button>
+                        </form>
+                        {% endif %}
 
-      <h2>Following</h2>
-      <table class="table table-dark">
-        <thead>
-          <tr>
-            <th>User ID</th>
-            <th>Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for follow in following %}
-          <tr>
-            <td>{{ follow[0] }}</td>
-            <td>{{ follow[1] }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <h3>Pending Friendship Requests</h3>
-      {% if pending_requests %}
-      <table class="table table-dark">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for request in pending_requests %}
-          <tr>
-            <td>{{ request[1] }}</td>
-            <td>
-              <form
-                action="{{ url_for('accept_friendship_request') }}"
-                method="post"
-              >
-                <input type="hidden" name="sender_id" value="{{ request[0] }}" />
-                <button type="submit" class="btn btn-success btn-custom">
-                  Accept
-                </button>
-              </form>
-              <form
-                action="{{ url_for('decline_friendship_request') }}"
-                method="post"
-              >
-                <input type="hidden" name="sender_id" value="{{ request[0] }}" />
-                <button type="submit" class="btn btn-danger btn-custom">
-                  Decline
-                </button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>No pending friendship requests.</p>
-      {% endif %}
-
-      <h3>All Premium Users</h3>
-      {% if all_users %}
-      <table class="table table-dark">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in all_users %}
-          <tr>
-            <td>{{ user[1] }}</td>
-            <td>
-              {% if user[0] in friends_set %}
-              <button disabled class="btn btn-secondary btn-custom">
-                Friend
-              </button>
-              {% elif user[0] in pending_requests %}
-              <button disabled class="btn btn-warning btn-custom">
-                Requested
-              </button>
-              {% else %}
-              <form
-                action="{{ url_for('send_friendship_request') }}"
-                method="post"
-                class="friend-request-form"
-                data-user-id="{{ user[0] }}"
-              >
-                <input type="hidden" name="friend_id" value="{{ user[0] }}" />
-                <button type="submit" class="btn btn-primary btn-custom">
-                  Request
-                </button>
-              </form>
-              {% endif %}
-
-              {% if user[0] in following_set %}
-              <form action="{{ url_for('follows') }}" method="post">
-                <input
-                  type="hidden"
-                  name="user_id_to_unfollow"
-                  value="{{ user[0] }}"
-                />
-                <button type="submit" class="btn btn-danger btn-custom">
-                  Unfollow
-                </button>
-              </form>
-              {% else %}
-              <form action="{{ url_for('follows') }}" method="post">
-                <input
-                  type="hidden"
-                  name="user_id_to_follow"
-                  value="{{ user[0] }}"
-                />
-                <button type="submit" class="btn btn-success btn-custom">
-                  Follow
-                </button>
-              </form>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>No premium users found.</p>
-      {% endif %}
+                        {% if user[0] in following_set %}
+                        <form action="{{ url_for('follows') }}" method="post">
+                            <input type="hidden" name="user_id_to_unfollow" value="{{ user[0] }}" />
+                            <button type="submit" class="btn btn-danger btn-requested">Unfollow</button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('follows') }}" method="post">
+                            <input type="hidden" name="user_id_to_follow" value="{{ user[0] }}" />
+                            <button type="submit" class="btn btn-success btn-requested">Follow</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No premium users found.</p>
+        {% endif %}
     </div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const requestForms = document.querySelectorAll('.friend-request-form');
-
-        requestForms.forEach(form => {
-          form.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            const userId = form.getAttribute('data-user-id');
-            const button = form.querySelector('button');
-
-            fetch('{{ url_for("send_friendship_request") }}', {
-              method: 'POST',
-              body: new FormData(form),
-            })
-              .then(response => response.text())
-              .then(data => {
-                // Change the button to "Requested"
-                button.classList.remove('btn-primary');
-                button.classList.add('btn-warning');
-                button.classList.add('btn-requested');
-                button.textContent = 'Requested';
-                button.disabled = true;
-              })
-              .catch(error => {
-                console.error('Error:', error);
-              });
-          });
-        });
-      });
-    </script>
-  </body>
+</body>
 </html>
