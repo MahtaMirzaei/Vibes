@@ -60,9 +60,8 @@ with sqlite3.connect("database.db") as connect:
     sender_id TEXT REFERENCES users(id),
     receiver_id TEXT REFERENCES users(id),
     text TEXT NOT NULL,
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (sender_id, receiver_id)
-)
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
 
 """)
         connect.execute("""
@@ -1490,5 +1489,7 @@ def send_message():
         conn.close()
 
     return redirect(url_for('chat', friend_id=receiver_id))
+
+
 if __name__ == "__main__":
     app.run(debug=True)
