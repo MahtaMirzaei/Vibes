@@ -293,6 +293,7 @@ def join():
 logging.basicConfig(level=logging.DEBUG)
 
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -762,41 +763,50 @@ def artist_page():
                 except Exception as e:
                     logging.error(f"Error deleting concert: {e}")
                     flash("An error occurred while deleting the concert.")
+                    
+                    
 
-            elif action == "add_song":
-                song_name = request.form["song_name"]
-                file = request.form["file"]
-                lyrics = request.form["lyrics"]
-                release_date = request.form["release_date"]
-                age_rating = request.form["age_rating"]
-                genre = request.form["genre"]
-                duration = request.form["duration"]
+            elif action== "add_song":
+                song_name = request.form.get('song_name')
+                file = request.form.get('file')
+                lyrics = request.form.get('lyrics')
+                release_date = request.form.get('release_date')
+                age_rating = request.form.get('age_rating')
+                genre = request.form.get('genre')
+                duration = request.form.get('duration')
+                user_id = session["user_id"]  # Replace with actual user_id retrieval logic
+
+                try:
+                    with sqlite3.connect('database.db') as connect:
+                        cursor = connect.cursor()
+                        cursor.execute(
+                            """
+                            INSERT INTO songs (album_id, name, file, lyrics, release_date, age_rating, genre, duration, is_limited, user_id)
+                            VALUES ("1",?, ?, ?, ?, ?, ?, ?, "0", ?)
+                            """,
+                            (song_name, file, lyrics, release_date, age_rating, genre, duration, user_id)
+                        )
+                        connect.commit()
+                        flash('Song successfully added.')
+                except Exception as e:
+                    logging.error(f'Error adding song: {e}')
+                    flash('An error occurred while adding the song.')
+           
+            elif action == "delete_song":
+                song_id = request.form["song_id"]
 
                 try:
                     with sqlite3.connect("database.db") as connect:
                         cursor = connect.cursor()
                         cursor.execute(
-                            """
-                            INSERT INTO songs (name, file, lyrics, release_date, age_rating, genre, duration, album_id, user_id)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """,
-                            (
-                                song_name,
-                                file,
-                                lyrics,
-                                release_date,
-                                age_rating,
-                                genre,
-                                duration,
-                                "",
-                                user_id,
-                            ),
+                            "DELETE FROM songs WHERE song_id = ? AND user_id = ?",
+                            (song_id, user_id),
                         )
                         connect.commit()
-                        flash("Song successfully added.")
+                        flash("Song successfully deleted.")
                 except Exception as e:
-                    logging.error(f"Error adding song: {e}")
-                    flash("An error occurred while adding the song.")
+                    logging.error(f"Error deleting song: {e}")
+                    flash("An error occurred while deleting the song.")
 
             elif action == "delete_song":
                 song_id = request.form["song_id"]
