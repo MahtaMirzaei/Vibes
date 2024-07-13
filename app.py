@@ -1018,6 +1018,7 @@ def artist_page():
         flash("Access denied: You are not an artist.")
         return redirect(url_for("user"))
 
+
 @app.route("/buy_ticket", methods=["POST"])
 def buy_ticket():
     if "user_id" in session:
