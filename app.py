@@ -150,12 +150,100 @@ with sqlite3.connect("database.db") as connect:
             """
     )
 
+
+        connect.execute(
+        """
+            CREATE TABLE IF NOT EXISTS playlist_likes (
+            playlist_likes_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            playlist_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id)
+);
+            """
+    )
+
     
         connect.execute(" INSERT OR IGNORE INTO album_likes (user_id, album_id) VALUES (1, 4) ")
         connect.execute(" INSERT OR IGNORE INTO album_likes (user_id, album_id) VALUES (1, 3) ")
         connect.execute(" INSERT OR IGNORE INTO song_likes (user_id, song_id) VALUES (1, 8) ")
         connect.execute(" INSERT OR IGNORE INTO song_likes (user_id, song_id) VALUES (1, 3) ")
 
+
+        connect.execute(
+        """
+            CREATE TABLE IF NOT EXISTS playlist_favorite (
+            playlist_favorite_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            playlist_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id)
+);
+            """
+    )
+        
+        connect.execute(
+        """
+            CREATE TABLE IF NOT EXISTS album_favorite (
+            album_favorite_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            album_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (album_id) REFERENCES album(album_id)
+);
+            """
+    )
+        
+        connect.execute(
+                    """
+            CREATE TABLE IF NOT EXISTS song_favorite (
+            song_favorite_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            song_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (song_id) REFERENCES songs(song_id)
+);
+            """
+    )
+
+        connect.execute(
+                    """
+            CREATE TABLE IF NOT EXISTS song_comments (
+            song_comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            song_id INTEGER NOT NULL,
+            comment TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (song_id) REFERENCES songs(song_id)
+);
+            """
+    )
+
+        connect.execute(
+                    """
+            CREATE TABLE IF NOT EXISTS playlist_comments (
+            playlist_comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            playlist_id INTEGER NOT NULL,
+            comment TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id)
+);
+            """
+    )
+
+        connect.execute(
+                    """
+            CREATE TABLE IF NOT EXISTS album_comments (
+            album_comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            album_id INTEGER NOT NULL,
+            comment TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (album_id) REFERENCES album(album_id)
+);
+            """
+    )
     
 
         connect.execute(
@@ -253,6 +341,120 @@ END;
         connect.execute(
         "INSERT OR IGNORE INTO FOLLOWS (user_id1, user_id2) VALUES (2, 1)")
 
+        connect.execute(
+        """
+            CREATE TABLE IF NOT EXISTS INBOX (
+                notice_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                friend_id TEXT,
+                item_name TEXT,
+                action TEXT,
+                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES USERS (user_id)
+                FOREIGN KEY (user_id) REFERENCES USERS (friend_id)
+            )
+            """
+    )
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS insert_song_like
+    AFTER INSERT ON song_likes
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT NEW.user_id, f.friend_id, (SELECT name FROM songs WHERE song_id = NEW.song_id), 'like'
+    FROM friends f
+    WHERE f.user_id = NEW.user_id;
+    END;
+""")
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS delete_song_like
+    AFTER DELETE ON song_likes
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT OLD.user_id, f.friend_id, (SELECT name FROM songs WHERE song_id = OLD.song_id), 'dislike'
+    FROM friends f
+    WHERE f.user_id = OLD.user_id;
+    END;
+""")
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS insert_album_like
+    AFTER INSERT ON album_likes
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT NEW.user_id, f.friend_id, (SELECT name FROM album WHERE album_id = NEW.album_id), 'like'
+    FROM friends f
+    WHERE f.user_id = NEW.user_id;
+    END;
+""")
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS delete_album_like
+    AFTER DELETE ON album_likes
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT OLD.user_id, f.friend_id, (SELECT name FROM album WHERE album_id = OLD.album_id), 'dislike'
+    FROM friends f
+    WHERE f.user_id = OLD.user_id;
+    END;
+""")
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS insert_playlist_like
+    AFTER INSERT ON playlist_likes
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT NEW.user_id, f.friend_id, (SELECT playlist_name FROM playlists WHERE playlist_id = NEW.playlist_id), 'like'
+    FROM friends f
+    WHERE f.user_id = NEW.user_id;
+    END;
+""")
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS delete_playlist_like
+    AFTER DELETE ON playlist_likes
+    BEGIN
+         INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT OLD.user_id, f.friend_id, (SELECT playlist_name FROM playlists WHERE playlist_id = OLD.playlist_id), 'dislike'
+    FROM friends f
+    WHERE f.user_id = OLD.user_id;
+    END;
+""")
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS insert_song_comments
+    AFTER INSERT ON song_comments
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT NEW.user_id, f.friend_id, (SELECT name FROM songs WHERE song_id = NEW.song_id), 'commente'
+    FROM friends f
+    WHERE f.user_id = NEW.user_id;
+    END;
+""")
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS insert_playlist_comments
+    AFTER INSERT ON playlist_comments
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT NEW.user_id, f.friend_id, (SELECT playlist_name FROM playlists WHERE playlist_id = NEW.playlist_id), 'commente'
+    FROM friends f
+    WHERE f.user_id = NEW.user_id;
+    END;
+""")
+
+        connect.execute("""
+    CREATE TRIGGER IF NOT EXISTS insert_album_comments
+    AFTER INSERT ON album_comments
+    BEGIN
+        INSERT INTO INBOX (user_id, friend_id, item_name, action)
+    SELECT NEW.user_id, f.friend_id, (SELECT name FROM album WHERE album_id = NEW.album_id), 'commente'
+    FROM friends f
+    WHERE f.user_id = NEW.user_id;
+    END;
+""")
+        
+
 
 
 
@@ -333,34 +535,89 @@ def search():
             conn = sqlite3.connect("database.db")
             c = conn.cursor()
 
+            user_id = session["user_id"]
+
             if search_category == "song_name":
-                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE s.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE s.name LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
-                columns = ["song_name", "artist", "age", "genre"]
+                columns = ["song_id", "song_name", "artist",
+                           "age", "genre", "is_liked", "is_favorite"]
             elif search_category == "artist":
-                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE u.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE u.name LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
-                columns = ["song_name", "artist", "age", "genre"]
+                columns = ["song_id", "song_name", "artist",
+                           "age", "genre", "is_liked", "is_favorite"]
             elif search_category == "age":
-                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE s.age_rating LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE s.age_rating LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
-                columns = ["song_name", "artist", "age", "genre"]
+                columns = ["song_id", "song_name", "artist",
+                           "age", "genre", "is_liked", "is_favorite"]
             elif search_category == "genre":
-                c.execute("SELECT s.name, u.name, s.age_rating, s.genre FROM songs s JOIN users u ON s.user_id = u.user_id WHERE s.genre LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                c.execute("""
+                    SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                        CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                        CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM songs s 
+                    JOIN users u ON s.user_id = u.user_id
+                    LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+                    LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+                    WHERE s.genre LIKE ? AND s.is_limited = 0
+                """, (user_id, user_id, "%"+search_input+"%"))
                 table_name = "songs"
-                columns = ["song_name", "artist", "age", "genre"]
+                columns = ["song_id", "song_name", "artist",
+                           "age", "genre", "is_liked", "is_favorite"]
             elif search_category == "album_name":
-                c.execute("SELECT a.name, u.name, a.genre, a.release_date FROM album a JOIN users u ON a.user_id = u.user_id WHERE a.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                c.execute("SELECT DISTINCT a.album_id, a.name, u.name, a.genre, a.release_date, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN af.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM album a JOIN users u ON a.user_id = u.user_id LEFT JOIN album_likes sl ON a.album_id = sl.album_id AND sl.user_id = ? LEFT JOIN album_favorite af ON a.album_id = af.album_id AND af.user_id = ? WHERE a.name LIKE ? ", (user_id, user_id, "%"+search_input+"%"))
                 table_name = "albums"
-                columns = ["album_name", "album_artist", "genre", "release_date"]
+                columns = ["album_id", "album_name", "album_artist",
+                           "genre", "release_date", "is_liked", "is_favorite"]
             elif search_category == "album_artist":
-                c.execute("SELECT a.name, u.name, a.genre, a.release_date FROM album a JOIN users u ON a.user_id = u.user_id WHERE u.name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                c.execute("SELECT DISTINCT a.album_id, a.name, u.name, a.genre, a.release_date, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN af.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM album a JOIN users u ON a.user_id = u.user_id LEFT JOIN album_likes sl ON a.album_id = sl.album_id AND sl.user_id = ? LEFT JOIN album_favorite af ON a.album_id = af.album_id AND af.user_id = ? WHERE u.name LIKE ? ", (user_id, user_id, "%"+search_input+"%"))
                 table_name = "albums"
-                columns = ["album_name", "album_artist", "genre", "release_date"]
+                columns = ["album_id", "album_name", "album_artist",
+                           "genre", "release_date", "is_liked", "is_favorite"]
             elif search_category == "playlist_name":
-                c.execute("SELECT playlist_name, genre FROM playlists WHERE playlist_name LIKE ? LIMIT 5", ("%"+search_input+"%",))
+                c.execute("""SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                FROM playlists p
+                JOIN users u ON p.creator_id = u.user_id
+                LEFT JOIN friends f ON p.creator_id = f.friend_id AND f.user_id = ?
+                LEFT JOIN playlist_likes sl ON p.playlist_id = sl.playlist_id AND sl.user_id = ?
+                LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                WHERE p.is_private = 0 and (f.user_id IS NOT NULL OR p.creator_id = ?)
+                AND p.playlist_name LIKE ?
+                """, (user_id, user_id, user_id, user_id, "%"+search_input+"%"))
                 table_name = "playlists"
-                columns = ["playlist_name", "genre"]
+                columns = ["playlist_id", "playlist_name",
+                           "genre", "is_liked", "is_favorite"]
 
             results = c.fetchall()
             conn.close()
@@ -371,7 +628,8 @@ def search():
 
         except sqlite3.Error as e:
             # Log the error
-            logging.error(f"An error occurred while processing the search request: {e}")
+            logging.error(
+                f"An error occurred while processing the search request: {e}")
             # Display a user-friendly error message
             return "An error occurred while processing your search request. Please try again later."
 
@@ -379,10 +637,478 @@ def search():
 
 
 
+
+
+@app.route("/like_song/<int:song_id>", methods=["POST"])
+def like_song(song_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM song_likes WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM song_likes WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        else:
+            c.execute(
+                "INSERT INTO song_likes (user_id, song_id) VALUES (?, ?)", (user_id, song_id))
+        conn.commit()
+
+        # Fetch the updated search results
+        c.execute("""
+            SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+            FROM songs s 
+            JOIN users u ON s.user_id = u.user_id
+            LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+            LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+            WHERE s.is_limited = 0
+        """, (user_id, user_id))
+        song_results = c.fetchall()
+        song_data = [dict(zip(["song_id", "song_name", "artist",
+                               "age", "genre", "is_liked", "is_favorite"], row)) for row in song_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="songs", data=song_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the like request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your like request. Please try again later."
+
+
+@app.route("/dislike_song/<int:song_id>", methods=["POST"])
+def dislike_song(song_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM song_likes WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM song_likes WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        else:
+            c.execute(
+                "INSERT INTO song_likes (user_id, song_id) VALUES (?, ?)", (user_id, song_id))
+        conn.commit()
+
+        # Fetch the updated search results
+        c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?", (user_id, user_id))
+        song_results = c.fetchall()
+        song_data = [dict(zip(["song_id", "song_name", "artist",
+                               "age", "genre", "is_liked", "is_favorite"], row)) for row in song_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="songs", data=song_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the like request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your like request. Please try again later."
+
+
+@app.route("/like_album/<int:album_id>", methods=["POST"])
+def like_album(album_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM album_likes WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM album_likes WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        else:
+            c.execute(
+                "INSERT INTO album_likes (user_id, album_id) VALUES (?, ?)", (user_id, album_id))
+        conn.commit()
+
+        c.execute("SELECT DISTINCT a.album_id, a.name, u.name AS album_artist, a.genre, a.release_date,  CASE WHEN al.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN af.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM album a JOIN users u ON a.user_id = u.user_id LEFT JOIN album_favorite af ON a.album_id = af.album_id AND af.user_id = ? LEFT JOIN album_likes al ON a.album_id = al.album_id AND al.user_id = ? ", (user_id, user_id))
+        album_results = c.fetchall()
+        album_data = [dict(zip(["album_id", "name", "album_artist", "genre",
+                           "release_date", "is_liked", "is_favorite"], row)) for row in album_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="albums", data=album_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the like request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your like request. Please try again later."
+
+
+@app.route("/dislike_album/<int:album_id>", methods=["POST"])
+def dislike_album(album_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM album_likes WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM album_likes WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        else:
+            c.execute(
+                "INSERT INTO album_likes (user_id, album_id) VALUES (?, ?)", (user_id, album_id))
+        conn.commit()
+
+        c.execute("SELECT DISTINCT a.album_id, a.name, u.name AS album_artist, a.genre, a.release_date,  CASE WHEN al.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN af.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM album a JOIN users u ON a.user_id = u.user_id LEFT JOIN album_favorite af ON a.album_id = af.album_id AND af.user_id = ? LEFT JOIN album_likes al ON a.album_id = al.album_id AND al.user_id = ? ", (user_id, user_id))
+        album_results = c.fetchall()
+        album_data = [dict(zip(["album_id", "name", "album_artist", "genre",
+                           "release_date", "is_liked", "is_favorite"], row)) for row in album_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="albums", data=album_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the like request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your like request. Please try again later."
+
+
+@app.route("/like_playlist/<int:playlist_id>", methods=["POST"])
+def like_playlist(playlist_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM playlist_likes WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM playlist_likes WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        else:
+            c.execute(
+                "INSERT INTO playlist_likes (user_id, playlist_id) VALUES (?, ?)", (user_id, playlist_id))
+        conn.commit()
+
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked
+                    FROM playlists p
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    LEFT JOIN friends f ON p.creator_id = f.friend_id AND f.user_id = ?
+                    LEFT JOIN users u ON p.creator_id = u.user_id
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR f.user_id IS NOT NULL) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
+
+        playlist_results = c.fetchall()
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_favorite", "is_liked"], row)) for row in playlist_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="playlists", data=playlist_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the like request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your like request. Please try again later."
+
+
+@app.route("/dislike_playlist/<int:playlist_id>", methods=["POST"])
+def dislike_playlist(playlist_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM playlist_likes WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM playlist_likes WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        else:
+            c.execute(
+                "INSERT INTO playlist_likes (user_id, playlist_id) VALUES (?, ?)", (user_id, playlist_id))
+        conn.commit()
+
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked
+                    FROM playlists p
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    LEFT JOIN friends f ON p.creator_id = f.friend_id AND f.user_id = ?
+                    LEFT JOIN users u ON p.creator_id = u.user_id
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR f.user_id IS NOT NULL) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
+
+        playlist_results = c.fetchall()
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_favorite", "is_liked"], row)) for row in playlist_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="playlists", data=playlist_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the like request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your like request. Please try again later."
+
+
+@app.route("/favorite_song/<int:song_id>", methods=["POST"])
+def favorite_song(song_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM song_favorite WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM song_favorite WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        else:
+            c.execute(
+                "INSERT INTO song_favorite (user_id, song_id) VALUES (?, ?)", (user_id, song_id))
+        conn.commit()
+
+        # Fetch the updated search results
+        c.execute("""
+            SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, 
+                CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, 
+                CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+            FROM songs s 
+            JOIN users u ON s.user_id = u.user_id
+            LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ?
+            LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?
+            WHERE s.is_limited = 0
+        """, (user_id, user_id))
+        song_results = c.fetchall()
+        song_data = [dict(zip(["song_id", "song_name", "artist",
+                               "age", "genre", "is_liked", "is_favorite"], row)) for row in song_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="songs", data=song_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the favorite request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your favorite request. Please try again later."
+
+
+@app.route("/disfavorite_song/<int:song_id>", methods=["POST"])
+def disfavorite_song(song_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM song_favorite WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM song_favorite WHERE user_id = ? AND song_id = ?", (user_id, song_id))
+        else:
+            c.execute(
+                "INSERT INTO song_favorite (user_id, song_id) VALUES (?, ?)", (user_id, song_id))
+        conn.commit()
+
+        # Fetch the updated search results
+        c.execute("SELECT DISTINCT s.song_id, s.name, u.name, s.age_rating, s.genre, CASE WHEN sl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN sf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM songs s JOIN users u ON s.user_id = u.user_id LEFT JOIN song_likes sl ON s.song_id = sl.song_id AND sl.user_id = ? LEFT JOIN song_favorite sf ON s.song_id = sf.song_id AND sf.user_id = ?", (user_id, user_id))
+        song_results = c.fetchall()
+        song_data = [dict(zip(["song_id", "song_name", "artist",
+                               "age", "genre", "is_liked", "is_favorite"], row)) for row in song_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="songs", data=song_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the favorite request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your favorite request. Please try again later."
+
+
+@app.route("/favorite_album/<int:album_id>", methods=["POST"])
+def favorite_album(album_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM album_favorite WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM album_favorite WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        else:
+            c.execute(
+                "INSERT INTO album_favorite (user_id, album_id) VALUES (?, ?)", (user_id, album_id))
+        conn.commit()
+
+        c.execute("SELECT DISTINCT a.album_id, a.name, u.name AS album_artist, a.genre, a.release_date,  CASE WHEN al.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN af.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM album a JOIN users u ON a.user_id = u.user_id LEFT JOIN album_favorite af ON a.album_id = af.album_id AND af.user_id = ? LEFT JOIN album_likes al ON a.album_id = al.album_id AND al.user_id = ? ", (user_id, user_id))
+        album_results = c.fetchall()
+        album_data = [dict(zip(["album_id", "name", "album_artist", "genre",
+                           "release_date", "is_liked", "is_favorite"], row)) for row in album_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="albums", data=album_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the favorite request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your favorite request. Please try again later."
+
+
+@app.route("/disfavorite_album/<int:album_id>", methods=["POST"])
+def disfavorite_album(album_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM album_favorite WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM album_favorite WHERE user_id = ? AND album_id = ?", (user_id, album_id))
+        else:
+            c.execute(
+                "INSERT INTO album_favorite (user_id, album_id) VALUES (?, ?)", (user_id, album_id))
+        conn.commit()
+
+        c.execute("SELECT DISTINCT a.album_id, a.name, u.name AS album_artist, a.genre, a.release_date,  CASE WHEN al.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked, CASE WHEN af.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite FROM album a JOIN users u ON a.user_id = u.user_id LEFT JOIN album_favorite af ON a.album_id = af.album_id AND af.user_id = ? LEFT JOIN album_likes al ON a.album_id = al.album_id AND al.user_id = ? ", (user_id, user_id))
+        album_results = c.fetchall()
+        album_data = [dict(zip(["album_id", "name", "album_artist", "genre",
+                           "release_date", "is_liked", "is_favorite"], row)) for row in album_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="albums", data=album_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the favorite request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your favorite request. Please try again later."
+
+
+@app.route("/favorite_playlist/<int:playlist_id>", methods=["POST"])
+def favorite_playlist(playlist_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM playlist_favorite WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM playlist_favorite WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        else:
+            c.execute(
+                "INSERT INTO playlist_favorite (user_id, playlist_id) VALUES (?, ?)", (user_id, playlist_id))
+
+        conn.commit()
+
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked,
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM playlists p
+                    JOIN users u ON p.creator_id = u.user_id
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR p.creator_id IN (
+                        SELECT friend_id FROM friends WHERE user_id = ?
+                    )) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
+
+        playlist_results = c.fetchall()
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_liked", "is_favorite"], row)) for row in playlist_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="playlists", data=playlist_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the favorite request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your favorite request. Please try again later."
+
+
+@app.route("/disfavorite_playlist/<int:playlist_id>", methods=["POST"])
+def disfavorite_playlist(playlist_id):
+    user_id = session["user_id"]
+    try:
+        conn = sqlite3.connect("database.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM playlist_favorite WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        result = c.fetchone()
+        if result:
+            c.execute(
+                "DELETE FROM playlist_favorite WHERE user_id = ? AND playlist_id = ?", (user_id, playlist_id))
+        else:
+            c.execute(
+                "INSERT INTO playlist_favorite (user_id, playlist_id) VALUES (?, ?)", (user_id, playlist_id))
+
+        conn.commit()
+
+        c.execute("""
+                    SELECT DISTINCT p.playlist_id, p.playlist_name, p.genre, 
+                                    CASE WHEN pl.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_liked,
+                                    CASE WHEN pf.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+                    FROM playlists p
+                    JOIN users u ON p.creator_id = u.user_id
+                    LEFT JOIN playlist_favorite pf ON p.playlist_id = pf.playlist_id AND pf.user_id = ?
+                    LEFT JOIN playlist_likes pl ON p.playlist_id = pl.playlist_id AND pl.user_id = ?
+                    WHERE (p.is_private = 0 OR p.creator_id = ? OR p.creator_id IN (
+                        SELECT friend_id FROM friends WHERE user_id = ?
+                    )) AND u.user_id IS NOT NULL
+                    """, (user_id, user_id, user_id, user_id))
+        playlist_results = c.fetchall()
+        playlist_data = [dict(zip(["playlist_id", "playlist_name", "genre",
+                              "is_liked", "is_favorite"], row)) for row in playlist_results]
+
+        conn.close()
+
+        return render_template("search.html", table_name="playlists", data=playlist_data)
+    except sqlite3.Error as e:
+        # Log the error
+        logging.error(
+            f"An error occurred while processing the favorite request: {e}")
+        # Display a user-friendly error message
+        return "An error occurred while processing your favorite request. Please try again later."
+
+
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
+
 
 @app.route("/user")
 def user():
@@ -494,6 +1220,20 @@ def user():
             suggested_songs = []
             suggested_albums = []
 
+        
+        with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+        cursor.execute("SELECT user_id, friend_id, item_name, action, date FROM INBOX WHERE friend_id = ? ORDER BY date DESC", (user_id,))
+        inbox_notices = []
+        for row in cursor.fetchall():
+            user_name = get_user_name(row[0])
+            inbox_notices.append({
+                'user_name': user_name,
+                'action': row[3],
+                'item_name': row[2],
+                'date': row[4]
+        })
+
         return render_template(
             "user.html",
             user_id=user_id,
@@ -505,11 +1245,23 @@ def user():
             etickets=etickets,
             suggested_songs=suggested_songs,
             suggested_albums=suggested_albums,
-            friendship_requests=friendship_requests
+            friendship_requests=friendship_requests,
+            inbox_notices=inbox_notices
         )
     else:
         return redirect(url_for("login"))
 
+
+def get_user_name(user_id):
+    with sqlite3.connect("database.db") as connect:
+                cursor = connect.cursor()
+    # Fetch the user's name from the USERS table
+    cursor.execute("SELECT name FROM USERS WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        return 'Unknown'
     
 @app.route("/charge", methods=["POST"])
 def charge():
@@ -1350,6 +2102,7 @@ def decline_friendship_request():
     return redirect(url_for("follows"))
 
 
+
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
     current_user_id = session.get('user_id')
@@ -1409,6 +2162,75 @@ def send_message():
         print(f"Error: {e}")
     finally:
         conn.close()
+
+    return redirect(url_for('chat', friend_id=receiver_id))
+
+@app.route('/comment', methods=['GET', 'POST'])
+def comment():
+    song_id = request.args.get('song_id', None)
+    playlist_id = request.args.get('playlist_id', None)
+    album_id = request.args.get('album_id', None)
+
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        comment_text = request.form['comment']
+
+        try:
+            conn = sqlite3.connect('database.db')
+            c = conn.cursor()
+
+            if song_id:
+                c.execute("INSERT INTO song_comments (user_id, song_id, comment) VALUES (?, ?, ?)",
+                          (user_id, song_id, comment_text))
+            elif playlist_id:
+                c.execute("INSERT INTO playlist_comments (user_id, playlist_id, comment) VALUES (?, ?, ?)",
+                          (user_id, playlist_id, comment_text))
+            elif album_id:
+                c.execute("INSERT INTO album_comments (user_id, album_id, comment) VALUES (?, ?, ?)",
+                          (user_id, album_id, comment_text))
+
+            conn.commit()
+            conn.close()
+
+            return redirect(url_for('comment', song_id=song_id, playlist_id=playlist_id, album_id=album_id))
+        except sqlite3.Error as e:
+            logging.error(f"An error occurred while saving the comment: {e}")
+            return "An error occurred while saving your comment. Please try again later."
+
+    try:
+        conn = sqlite3.connect('database.db')
+        c = conn.cursor()
+
+        if song_id:
+            song_comments = c.execute(
+                "SELECT * FROM song_comments WHERE song_id = ?", (song_id,)).fetchall()
+            playlist_comments = []
+            album_comments = []
+        elif playlist_id:
+            song_comments = []
+            playlist_comments = c.execute(
+                "SELECT * FROM playlist_comments WHERE playlist_id = ?", (playlist_id,)).fetchall()
+            album_comments = []
+        elif album_id:
+            song_comments = []
+            playlist_comments = []
+            album_comments = c.execute(
+                "SELECT * FROM album_comments WHERE album_id = ?", (album_id,)).fetchall()
+        else:
+            song_comments = c.execute("SELECT * FROM song_comments").fetchall()
+            playlist_comments = c.execute(
+                "SELECT * FROM playlist_comments").fetchall()
+            album_comments = c.execute(
+                "SELECT * FROM album_comments").fetchall()
+
+        conn.close()
+
+        return render_template('comment.html', song_comments=song_comments, playlist_comments=playlist_comments, album_comments=album_comments, user_id=session['user_id'], song_id=song_id, playlist_id=playlist_id, album_id=album_id)
+    except sqlite3.Error as e:
+        logging.error(f"An error occurred while fetching the comments: {e}")
+        return "An error occurred while fetching the comments. Please try again later."
+
+
 
     return redirect(url_for('chat', friend_id=receiver_id))
 
