@@ -10,10 +10,35 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{{ url_for('static', filename='Icon/apple-touch-icon.png') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="{{ url_for('static', filename='Icon/favicon-32x32.png') }}"
+    />
+    <link
       rel="icon"
       type="image/png"
       sizes="16x16"
       href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}"
+    />
+    <link
+      rel="manifest"
+      href="{{ url_for('static', filename='Icon/site.webmanifest') }}"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     />
     <title>User Page</title>
   </head>
@@ -47,31 +72,163 @@
         <thead>
           <tr>
             {% if table_name == "songs" %}
+            <th>ID</th>
             <th>Song Name</th>
             <th>Artist</th>
             <th>Age</th>
             <th>Genre</th>
+            <th>Lyrics</th>
+            <th>Like</th>
+            <th>Favorite</th>
             {% elif table_name == "albums" %}
+            <th>ID</th>
             <th>Album Name</th>
             <th>Artist</th>
             <th>Genre</th>
             <th>Release Date</th>
+            <th>Like</th>
+            <th>Favorite</th>
             {% elif table_name == "playlists" %}
+            <th>ID</th>
             <th>PlayList Name</th>
             <th>Genre</th>
+            <th>Like</th>
+            <th>Favorite</th>
             {% endif %}
           </tr>
         </thead>
         <tbody>
           {% if data %} {% for item in data %}
           <tr>
-            {% for value in item.values() %}
+            {% for key, value in item.items() %} {% if key != "is_liked" and key != "is_favorite" %}
             <td>{{ value }}</td>
-            {% endfor %}
+            {% endif %} {% endfor %} {% if table_name == "songs" %}
+            <td>
+              {% if item['is_liked'] %}
+              <form
+                action="{{ url_for('dislike_song', song_id=item['song_id']) }}"
+                method="post"
+                class="dislike-form"
+              >
+                <button type="submit">Dislike</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('like_song', song_id=item['song_id']) }}"
+                method="post"
+                class="like-form"
+              >
+                <button type="submit">Like</button>
+              </form>
+              {% endif %}
+            </td>
+            <td>
+              {% if item['is_favorite'] %}
+              <form
+                action="{{ url_for('disfavorite_song', song_id=item['song_id']) }}"
+                method="post"
+                class="disfavorite-form"
+              >
+                <button type="submit">Disfavorite</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('favorite_song', song_id=item['song_id']) }}"
+                method="post"
+                class="favorite-form"
+              >
+                <button type="submit">favorite</button>
+              </form>
+              {% endif %}
+            </td>
+
+            {% elif table_name == "albums" %}
+            <td>
+              {% if item['is_liked'] %}
+              <form
+                action="{{ url_for('dislike_album', album_id=item['album_id']) }}"
+                method="post"
+                class="dislike-form"
+              >
+                <button type="submit">Dislike</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('like_album', album_id=item['album_id']) }}"
+                method="post"
+                class="like-form"
+              >
+                <button type="submit">Like</button>
+              </form>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if item['is_favorite'] %}
+              <form
+                action="{{ url_for('disfavorite_album', album_id=item['album_id']) }}"
+                method="post"
+                class="disfavorite-form"
+              >
+                <button type="submit">Disfavorite</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('favorite_album', album_id=item['album_id']) }}"
+                method="post"
+                class="favorite-form"
+              >
+                <button type="submit">favorite</button>
+              </form>
+              {% endif %}
+            </td>
+
+            {% elif table_name == "playlists" %}
+            <td>
+              {% if item['is_liked'] %}
+              <form
+                action="{{ url_for('dislike_playlist', playlist_id=item['playlist_id']) }}"
+                method="post"
+                class="dislike-form"
+              >
+                <button type="submit">Dislike</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('like_playlist', playlist_id=item['playlist_id']) }}"
+                method="post"
+                class="like-form"
+              >
+                <button type="submit">Like</button>
+              </form>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if item['is_favorite'] %}
+              <form
+                action="{{ url_for('disfavorite_playlist', playlist_id=item['playlist_id']) }}"
+                method="post"
+                class="disfavorite-form"
+              >
+                <button type="submit">Disfavorite</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('favorite_playlist', playlist_id=item['playlist_id']) }}"
+                method="post"
+                class="favorite-form"
+              >
+                <button type="submit">favorite</button>
+              </form>
+              {% endif %}
+            </td>
+            {% endif %}
+            
           </tr>
           {% endfor %} {% else %}
           <tr>
-            <td colspan="4">No results found.</td>
+            <td colspan="6">No results found.</td>
           </tr>
           {% endif %}
         </tbody>

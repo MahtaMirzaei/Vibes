@@ -104,6 +104,16 @@
         </div>
       </div>
 
+      <div class="block-1">
+        <h2>Inbox</h2>
+        <hr class="main-hr">
+        <div class="song-list">
+            {% for notice in inbox_notices %}
+                <p>{{ notice.user_name }} {{ notice.action }}d {{ notice.item_name }} at {{ notice.date }}</p><hr class="sugestion-hr">
+            {% endfor %}
+        </div>
+      </div>
+
       <div class="right-column">
         <div class="block-1">
           <h2>Suggested Songs</h2>
@@ -125,6 +135,7 @@
         </div>
       </div>
     </div>
+
 
     <div id="mySidenav" class="sidenav">
       <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"
