@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <style>
+      body {
+        background-color: #1e1e1f;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 5px;
+      }
+
+      h1, h2, h3 {
+        color: #9400d3;
+      }
+
+      .chat-container {
+        width: 100%;
+        max-width: 800px;
+        margin-top: 20px;
+      }
+
+      .chat-box {
+        background-color: #2e2e2f;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        overflow-y: auto;
+        height: 400px;
+      }
+
+      .message {
+        background-color: #3e3e3f;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
+
+      .message .sender {
+        font-weight: bold;
+        color: #9400d3;
+      }
+
+      .message .text {
+        color: #ffffff;
+      }
+
+      .send-message-form {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      .send-message-form input {
+        flex-grow: 1;
+        margin-right: 10px;
+      }
+
+      .btn-send {
+        background-color: #9400d3;
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+      }
+
+      .btn-send:hover {
+        background-color: #7500a9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <h1>Chat with {{ friend_name }}</h1>
+      <div class="chat-box">
+        {% for message in messages %}
+        <div class="message">
+          <div class="sender">{{ message['sender_name'] }}</div>
+          <div class="text">{{ message['text'] }}</div>
+          <div class="date">{{ message['date'] }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <form action="{{ url_for('send_message') }}" method="post" class="send-message-form">
+        <input type="hidden" name="receiver_id" value="{{ friend_id }}">
+        <input type="text" name="text" class="form-control" placeholder="Type a message..." required>
+        <button type="submit" class="btn btn-send">Send</button>
+      </form>
+    </div>
+  </body>
+</html>

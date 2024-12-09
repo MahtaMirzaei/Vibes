@@ -1,123 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="{{ url_for('static', filename='Icon/favicon-16x16.png') }}"
+    />
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
     <title>Artist Page</title>
+    <script>
+      function showAddSongForm(albumId) {
+        document
+          .getElementById("add-song-form-" + albumId)
+          .classList.remove("d-none");
+      }
+    </script>
     <style>
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        .grid-item {
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-        }
+      body {
+        background-color: #1e1e1f;
+        color: #ffffff;
+      }
+      .container {
+        margin-top: 20px;
+      }
+      .grid-item {
+        background-color: #1e1e1f;
+        padding: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .form-container {
+        margin-top: 20px;
+      }
+      .form-row {
+        margin-bottom: 15px;
+      }
+      .btn-delete {
+        background-color: #9400d3;
+        color: white;
+      }
+      .btn-delete:hover {
+        background-color: #7500a9;
+      }
+      .btn-add-song,
+      .btn-submit {
+        background-color: #007bff;
+        color: white;
+      }
+      .btn-add-song:hover,
+      .btn-submit:hover {
+        background-color: #0056b3;
+      }
+      .btn-toggle {
+        background-color: #ffd700;
+        color: black;
+      }
+      .btn-toggle:hover {
+        background-color: #e5c100;
+      }
+      .hidden {
+        display: none;
+      }
+      
     </style>
-</head>
-<body>
-    <h1>Artist Page</h1>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+          <h1>Artist Page</h1>
+        </div>
+      </div>
 
-    <div class="grid-container">
-        <div class="grid-item">
-            <h2>Your Concerts</h2>
-            <ul>
-                {% for concert in concerts %}
-                <li>
-                    {{ concert[1] }} - {{ concert[2] }} - ${{ concert[3] }} - Tickets: {{ concert[4] }}
-                    <form action="{{ url_for('artist_page') }}" method="POST" style="display:inline;">
-                        <input type="hidden" name="action" value="delete_concert">
-                        <input type="hidden" name="concert_id" value="{{ concert[0] }}">
-                        <button type="submit">Delete</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
+      <div class="row">
+        <!-- Concerts Column -->
+        <div class="col-md-4 grid-item">
+          <h2>Your Concerts</h2>
+          <ul>
+            {% for concert in concerts %}
+            <li>
+              {{ concert[1] }} - {{ concert[2] }} - ${{ concert[3] }} - Tickets:
+              {{ concert[4] }}
+              <form
+                action="{{ url_for('artist_page') }}"
+                method="POST"
+                class="d-inline"
+              >
+                <input type="hidden" name="action" value="delete_concert" />
+                <input
+                  type="hidden"
+                  name="concert_id"
+                  value="{{ concert[0] }}"
+                />
+                <button class="btn btn-delete btn-sm" type="submit">
+                  Delete
+                </button>
+              </form>
+            </li>
+            {% endfor %}
+          </ul>
+          <div class="form-container">
             <h2>Add New Concert</h2>
             <form action="{{ url_for('artist_page') }}" method="POST">
-                <input type="hidden" name="action" value="add_concert">
+              <input type="hidden" name="action" value="add_concert" />
+              <div class="form-group">
                 <label for="name">Concert Name:</label>
-                <input type="text" id="name" name="name" required><br>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="date">Date:</label>
-                <input type="date" id="date" name="date" required><br>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="price">Price:</label>
-                <input type="number" id="price" name="price" required><br>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="ticket_number">Ticket Number:</label>
-                <input type="number" id="ticket_number" name="ticket_number" required><br>
-                <button type="submit">Add Concert</button>
+                <input
+                  type="number"
+                  id="ticket_number"
+                  name="ticket_number"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <button class="btn btn-submit btn-block" type="submit">
+                Add Concert
+              </button>
             </form>
+          </div>
         </div>
 
-        <div class="grid-item">
-            <h2>Your Songs</h2>
-            <ul>
-                {% for song in songs %}
-                <li>
-                    {{ song[1] }} - Album ID: {{ song[2] }} - {{ song[3] }} - {{ song[4] }} - {{ song[5] }}
-                    <form action="{{ url_for('artist_page') }}" method="POST" style="display:inline;">
-                        <input type="hidden" name="action" value="delete_song">
-                        <input type="hidden" name="song_id" value="{{ song[0] }}">
-                        <button type="submit">Delete</button>
-                    </form>
-                    <form action="{{ url_for('artist_page') }}" method="POST" style="display:inline;">
-                        <input type="hidden" name="action" value="toggle_limit">
-                        <input type="hidden" name="song_id" value="{{ song[0] }}">
-                        <button type="submit">{{ 'Limit' if not song[6] else 'Unlimit' }}</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
+        <!-- Songs Column -->
+        <div class="col-md-4 grid-item">
+          <h2>Your Songs</h2>
+          <ul>
+            {% for song in songs %}
+            <li>
+              {{ song[1] }} - {{ song[3] }} - {{ song[4] }} - {{ song[5] }} -
+              Album ID: {{ song[2] }}
+              <form
+                action="{{ url_for('artist_page') }}"
+                method="POST"
+                class="d-inline"
+              >
+                <input type="hidden" name="action" value="delete_song" />
+                <input type="hidden" name="song_id" value="{{ song[0] }}" />
+                <button class="btn btn-delete btn-sm" type="submit">
+                  Delete
+                </button>
+              </form>
+              <form
+                action="{{ url_for('artist_page') }}"
+                method="POST"
+                class="d-inline"
+              >
+                <input type="hidden" name="action" value="toggle_limit" />
+                <input type="hidden" name="song_id" value="{{ song[0] }}" />
+                <button class="btn btn-toggle btn-sm">
+                  {{ 'Limit' if not song[6] else 'Unlimit' }}
+                </button>
+              </form>
+            </li>
+            {% endfor %}
+          </ul>
+          <div class="form-container">
             <h2>Add New Song</h2>
             <form action="{{ url_for('artist_page') }}" method="POST">
-                <input type="hidden" name="action" value="add_song">
+              <input type="hidden" name="action" value="add_song" />
+              <div class="form-group">
                 <label for="song_name">Song Name:</label>
-                <input type="text" id="song_name" name="song_name" required><br>
+                <input
+                  type="text"
+                  id="song_name"
+                  name="song_name"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="file">File:</label>
-                <input type="text" id="file" name="file" required><br>
+                <input
+                  type="text"
+                  id="file"
+                  name="file"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="lyrics">Lyrics:</label>
-                <input type="text" id="lyrics" name="lyrics" required><br>
+                <input
+                  type="text"
+                  id="lyrics"
+                  name="lyrics"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="release_date">Release Date:</label>
-                <input type="date" id="release_date" name="release_date" value="{{ current_date }}" required><br>
+                <input
+                  type="date"
+                  id="release_date"
+                  name="release_date"
+                  class="form-control"
+                  value="{{ current_date }}"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="age_rating">Age Rating:</label>
-                <input type="number" id="age_rating" name="age_rating" required><br>
+                <input
+                  type="number"
+                  id="age_rating"
+                  name="age_rating"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="genre">Genre:</label>
-                <input type="text" id="genre" name="genre" required><br>
+                <input
+                  type="text"
+                  id="genre"
+                  name="genre"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="duration">Duration:</label>
-                <input type="number" id="duration" name="duration" required><br>
-                <label for="album_id">Album ID:</label>
-                <input type="number" id="album_id" name="album_id"><br>
-                <button type="submit">Add Song</button>
+                <input
+                  type="number"
+                  id="duration"
+                  name="duration"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <button class="btn btn-submit btn-block" type="submit">
+                Add Song
+              </button>
             </form>
+          </div>
         </div>
 
-        <div class="grid-item">
-            <h2>Your Albums</h2>
-            <ul>
-                {% for album in albums %}
-                <li>
-                    {{ album[1] }} - {{ album[2] }} - {{ album[3] }}
-                    <form action="{{ url_for('artist_page') }}" method="POST" style="display:inline;">
-                        <input type="hidden" name="action" value="delete_album">
-                        <input type="hidden" name="album_id" value="{{ album[0] }}">
-                        <button type="submit">Delete</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
+        <!-- Albums Column -->
+        <div class="col-md-4 grid-item">
+          <h2>Your Albums</h2>
+          <ul>
+            {% for album in albums %}
+            <li>
+              <b>{{ album[1] }}</b> - {{ album[2] }} - {{ album[3] }}<br />
+              Songs: {{ album[4] | safe }}
+              <form
+                action="{{ url_for('artist_page') }}"
+                method="POST"
+                class="d-inline"
+              >
+                <input type="hidden" name="action" value="delete_album" />
+                <input type="hidden" name="album_id" value="{{ album[0] }}" />
+                <button class="btn btn-delete btn-sm" type="submit">
+                  Delete
+                </button>
+              </form>
+              <button
+                class="btn btn-add-song btn-sm"
+                onclick="showAddSongForm({{ album[0] }})"
+              >
+                Add Songs
+              </button>
+              <div id="add-song-form-{{ album[0] }}" class="hidden">
+                <form method="post" action="{{ url_for('artist_page') }}">
+                  <input
+                    type="hidden"
+                    name="action"
+                    value="add_songs_to_album"
+                  />
+                  <input type="hidden" name="album_id" value="{{ album[0] }}" />
+                  <div class="form-group">
+                    <label for="song_id">Song ID to add:</label>
+                    <input
+                      type="text"
+                      name="song_id"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <button class="btn btn-submit btn-sm" type="submit">
+                    Add Song
+                  </button>
+                </form>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+          <div class="form-container">
             <h2>Add New Album</h2>
             <form action="{{ url_for('artist_page') }}" method="POST">
-                <input type="hidden" name="action" value="add_album">
+              <input type="hidden" name="action" value="add_album" />
+              <div class="form-group">
                 <label for="album_name">Album Name:</label>
-                <input type="text" id="album_name" name="album_name" required><br>
-                <label for="release_date">Release Date:</label>
-                <input type="date" id="release_date" name="release_date" value="{{ current_date }}" required><br>
+                <input
+                  type="text"
+                  id="album_name"
+                  name="album_name"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="album_release_date">Release Date:</label>
+                <input
+                  type="date"
+                  id="album_release_date"
+                  name="album_release_date"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="description">Description:</label>
+                <input
+                  type="text"
+                  id="description"
+                  name="description"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="genre">Genre:</label>
-                <input type="text" id="genre" name="genre" required><br>
-                <button type="submit">Add Album</button>
+                <input
+                  type="text"
+                  id="genre"
+                  name="genre"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <button class="btn btn-submit btn-block" type="submit">
+                Add Album
+              </button>
             </form>
+          </div>
         </div>
+      </div>
     </div>
-</body>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
 </html>
